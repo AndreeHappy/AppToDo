@@ -7,7 +7,6 @@ import {
   SignIn,
   UserPlus,
   ShieldCheck,
-  Database,
   ArrowRight,
   WarningCircle,
   Key,
@@ -16,6 +15,7 @@ import {
   PaperPlaneRight,
 } from '@phosphor-icons/react';
 import { useAuth } from '../../context/AuthContext';
+import { StatusBadge } from '../ui/StatusBadge';
 
 type AuthMode = 'login' | 'register' | 'forgot_password';
 
@@ -234,12 +234,9 @@ export const AuthView: React.FC = () => {
               : 'Acceso seguro a tu Centro de Tareas y Gestor de Finanzas Personales'}
           </p>
 
-          {/* Connection Mode Pill */}
-          <div className="mt-1 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono border bg-zinc-900/90 border-zinc-800 text-zinc-300">
-            <Database size={13} className={isMockMode ? 'text-amber-400' : 'text-emerald-400'} />
-            <span>
-              {isMockMode ? 'Modo Local / Demo Rápido' : 'Conectado a Supabase Cloud'}
-            </span>
+          {/* Connection Status Badge */}
+          <div className="mt-1">
+            <StatusBadge isMockMode={isMockMode} />
           </div>
         </div>
 

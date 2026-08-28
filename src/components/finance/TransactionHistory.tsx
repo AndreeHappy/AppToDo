@@ -11,6 +11,7 @@ import {
 } from '@phosphor-icons/react';
 import type { Transaction, TransactionType, FundType } from '../../types';
 import { formatDisplayDate } from '../../utils/date';
+import { CATEGORY_STYLES } from '../../constants/categories';
 
 interface Props {
   transactions: Transaction[];
@@ -40,7 +41,7 @@ export const TransactionHistory: React.FC<Props> = ({
   }, [transactions, search, typeFilter, fundFilter]);
 
   return (
-    <div className="p-6 rounded-3xl bg-[#12141e] border border-white/[0.08] flex flex-col gap-5 shadow-xl">
+    <div className="p-5 sm:p-6 rounded-3xl bg-[#11131a] border border-white/[0.08] flex flex-col gap-5 shadow-xl">
       {/* Header & Filters */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-2.5">
@@ -60,7 +61,7 @@ export const TransactionHistory: React.FC<Props> = ({
         {/* Filter controls */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Search bar */}
-          <div className="relative flex items-center min-w-[180px]">
+          <div className="relative flex items-center min-w-[170px] flex-1 sm:flex-initial">
             <span className="absolute left-3 text-zinc-500 pointer-events-none">
               <MagnifyingGlass size={13} />
             </span>
@@ -68,7 +69,7 @@ export const TransactionHistory: React.FC<Props> = ({
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar concepto o categoría..."
+              placeholder="Buscar concepto..."
               className="w-full pl-8 pr-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-indigo-500 text-xs text-white placeholder-zinc-500 outline-none"
             />
           </div>
@@ -77,7 +78,7 @@ export const TransactionHistory: React.FC<Props> = ({
           <select
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value as any)}
-            className="px-2.5 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 outline-none [color-scheme:dark]"
+            className="px-2.5 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 outline-none [color-scheme:dark] cursor-pointer"
           >
             <option value="all">Todos los Tipos</option>
             <option value="income">Solo Ingresos (+)</option>
@@ -88,7 +89,7 @@ export const TransactionHistory: React.FC<Props> = ({
           <select
             value={fundFilter}
             onChange={(e) => setFundFilter(e.target.value as any)}
-            className="px-2.5 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 outline-none [color-scheme:dark]"
+            className="px-2.5 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 outline-none [color-scheme:dark] cursor-pointer"
           >
             <option value="all">Todos los Fondos</option>
             <option value="digital">Digital / Bancos</option>
@@ -102,11 +103,16 @@ export const TransactionHistory: React.FC<Props> = ({
         <AnimatePresence mode="popLayout" initial={false}>
           {filteredList.length === 0 ? (
             <div className="p-8 text-center text-xs text-zinc-500 border border-dashed border-zinc-800/80 rounded-2xl my-2">
-              No se encontraron transacciones con los filtros seleccionados.
+              No se encontraron transacciones registradas con los filtros seleccionados.
             </div>
           ) : (
             filteredList.map((tx) => {
               const isIncome = tx.type === 'income';
+              const catStyle = CATEGORY_STYLES[tx.category] || {
+                color: 'text-zinc-300',
+                bg: 'bg-zinc-800',
+                border: 'border-zinc-700',
+              };
 
               return (
                 <motion.div
@@ -139,7 +145,9 @@ export const TransactionHistory: React.FC<Props> = ({
                         <span className="text-xs font-bold text-white tracking-tight truncate">
                           {tx.counterparty_concept}
                         </span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-zinc-800 text-zinc-300 border border-zinc-700">
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${catStyle.bg} ${catStyle.color} ${catStyle.border}`}
+                        >
                           {tx.category}
                         </span>
                       </div>
@@ -178,11 +186,14 @@ export const TransactionHistory: React.FC<Props> = ({
                         isIncome ? 'text-emerald-400' : 'text-rose-400'
                       }`}
                     >
-                      {isIncome ? '+' : '-'}S/. {tx.amount.toFixed(2)}
+                      {isIncome ? '+' : '-'}S/. {Number(tx.amount).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
                     </span>
 
                     <button
-                      onClick={(e) => onDeleteTransaction(tx.id, e)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteTransaction(tx.id, e);
+                      }}
                       title="Eliminar movimiento"
                       className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
                     >

@@ -13,6 +13,7 @@ import {
 } from '@phosphor-icons/react';
 import type { TransactionType, FundType } from '../../types';
 import { getTodayString } from '../../utils/date';
+import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '../../constants/categories';
 
 interface Props {
   isOpen: boolean;
@@ -39,9 +40,6 @@ interface Props {
     reserveImpact: number;
   }) => void;
 }
-
-const INCOME_CATEGORIES = ['Honorarios', 'Salario', 'Freelance', 'Venta', 'Beca / Subvención', 'Rendimientos', 'Otros Ingresos'];
-const EXPENSE_CATEGORIES = ['Alimentación', 'Transporte', 'Tesis / Estudio', 'Servicios Básicos', 'Alquiler', 'Salud / Farmacia', 'Equipamiento', 'Otros Gastos'];
 
 export const TransactionFormModal: React.FC<Props> = ({
   isOpen,
@@ -124,6 +122,8 @@ export const TransactionFormModal: React.FC<Props> = ({
     onClose();
   };
 
+  const currentCategories = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -133,24 +133,27 @@ export const TransactionFormModal: React.FC<Props> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/75 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm"
           />
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            initial={{ opacity: 0, scale: 0.95, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-            className="relative z-10 w-full max-w-md rounded-3xl bg-[#13151f] border border-white/[0.1] p-6 shadow-2xl flex flex-col gap-5 text-zinc-100"
+            exit={{ opacity: 0, scale: 0.95, y: 12 }}
+            transition={{ type: 'spring', stiffness: 350, damping: 26 }}
+            className="relative z-10 w-full max-w-md rounded-3xl bg-[#12141e] border border-white/[0.1] p-6 sm:p-7 shadow-2xl flex flex-col gap-5 text-zinc-100"
           >
             {/* Header */}
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-white tracking-tight">
-                Registrar Movimiento Financiero
-              </h3>
+            <div className="flex items-center justify-between pb-2 border-b border-white/[0.08]">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                <h3 className="text-base font-bold text-white tracking-tight">
+                  Registrar Movimiento Financiero
+                </h3>
+              </div>
               <button
                 onClick={onClose}
-                className="p-1 rounded-md text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-colors"
+                className="p-1 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 transition-colors"
               >
                 <X size={16} />
               </button>
@@ -173,7 +176,7 @@ export const TransactionFormModal: React.FC<Props> = ({
                   />
                 )}
                 <Plus size={14} weight="bold" />
-                <span>Ingreso</span>
+                <span>Ingreso (+)</span>
               </button>
 
               <button
@@ -191,7 +194,7 @@ export const TransactionFormModal: React.FC<Props> = ({
                   />
                 )}
                 <Minus size={14} weight="bold" />
-                <span>Egreso / Gasto</span>
+                <span>Egreso / Gasto (-)</span>
               </button>
             </div>
 
@@ -256,15 +259,13 @@ export const TransactionFormModal: React.FC<Props> = ({
                   <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
                     Fecha
                   </label>
-                  <div className="relative flex items-center">
-                    <input
-                      type="date"
-                      value={date}
-                      onChange={(e) => setDate(e.target.value)}
-                      required
-                      className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-indigo-500 text-xs text-white outline-none [color-scheme:dark]"
-                    />
-                  </div>
+                  <input
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    required
+                    className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-indigo-500 text-xs text-white outline-none [color-scheme:dark]"
+                  />
                 </div>
               </div>
 
@@ -280,42 +281,49 @@ export const TransactionFormModal: React.FC<Props> = ({
                   type="text"
                   value={counterpartyConcept}
                   onChange={(e) => setCounterpartyConcept(e.target.value)}
-                  placeholder={type === 'income' ? 'Ej: Cliente Juan Pérez / Beca' : 'Ej: Supermercado / Empaste de Tesis'}
+                  placeholder={type === 'income' ? 'Ej: Cliente Juan Pérez / Beca' : 'Ej: Supermercado / Pasaje a la Universidad'}
                   required
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-indigo-500 text-sm text-white placeholder-zinc-500 outline-none"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-indigo-500 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none"
                 />
               </div>
 
-              {/* Category */}
+              {/* Category (Clean Obsidian Dropdown) */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1">
                   <Tag size={13} />
                   <span>Categoría</span>
                 </label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-indigo-500 text-xs text-white outline-none [color-scheme:dark]"
-                >
-                  {(type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-indigo-500 text-xs sm:text-sm text-white outline-none cursor-pointer [color-scheme:dark] appearance-none"
+                  >
+                    {currentCategories.map((cat) => (
+                      <option key={cat} value={cat} className="bg-[#12141e] text-zinc-200 py-2">
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-zinc-400">
+                    <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
+                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                    </svg>
+                  </div>
+                </div>
               </div>
 
               {/* Notes (Optional) */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1">
                   <ChatCircleText size={13} />
-                  <span>Detalles / Notas (Opcional)</span>
+                  <span>Detalles / Comentarios (Opcional)</span>
                 </label>
                 <input
                   type="text"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Información adicional del comprobante..."
+                  placeholder="Información adicional del movimiento..."
                   className="w-full px-3.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-indigo-500 text-xs text-white placeholder-zinc-500 outline-none"
                 />
               </div>

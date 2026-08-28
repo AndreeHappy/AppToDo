@@ -1,5 +1,7 @@
 ﻿import React, { useState } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { FinanceProvider } from './context/FinanceContext';
+import { TodoProvider } from './context/TodoContext';
 import { AuthView } from './components/auth/AuthView';
 import { DashboardHub } from './components/dashboard/DashboardHub';
 import { ToDoModule } from './components/todo/ToDoModule';
@@ -32,19 +34,13 @@ const MainPortal: React.FC = () => {
   }
 
   if (activeModule === 'hub') {
-    return (
-      <DashboardHub
-        onSelectModule={setActiveModule}
-        todoCount={3}
-        financeBalance={1680.00}
-      />
-    );
+    return <DashboardHub onSelectModule={setActiveModule} />;
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#0b0c10] text-zinc-100 flex flex-col antialiased">
-      {/* Top Portal Navigation when inside a module */}
-      <nav className="bg-[#11131a] border-b border-white/[0.08] px-6 py-3 flex items-center justify-between z-30 select-none">
+    <div className="min-h-[100dvh] bg-[#090a0f] text-zinc-100 flex flex-col antialiased">
+      {/* Top Portal Navigation */}
+      <nav className="bg-[#11131a] border-b border-white/[0.08] px-4 sm:px-6 py-3 flex items-center justify-between z-30 select-none">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setActiveModule('hub')}
@@ -54,7 +50,7 @@ const MainPortal: React.FC = () => {
             <span>Volver al Hub</span>
           </button>
 
-          <span className="text-zinc-600">/</span>
+          <span className="text-zinc-600 hidden sm:inline">/</span>
 
           <div className="flex items-center gap-2">
             {activeModule === 'todo' ? (
@@ -97,7 +93,11 @@ const MainPortal: React.FC = () => {
 
       {/* Module Content */}
       <div className="flex flex-1 overflow-hidden">
-        {activeModule === 'todo' ? <ToDoModule /> : <FinanceDashboard onBackToHub={() => setActiveModule('hub')} />}
+        {activeModule === 'todo' ? (
+          <ToDoModule />
+        ) : (
+          <FinanceDashboard onBackToHub={() => setActiveModule('hub')} />
+        )}
       </div>
     </div>
   );
@@ -106,7 +106,11 @@ const MainPortal: React.FC = () => {
 export const App: React.FC = () => {
   return (
     <AuthProvider>
-      <MainPortal />
+      <FinanceProvider>
+        <TodoProvider>
+          <MainPortal />
+        </TodoProvider>
+      </FinanceProvider>
     </AuthProvider>
   );
 };

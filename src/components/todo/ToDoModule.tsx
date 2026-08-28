@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect, useMemo } from 'react';
-import type { Task, Agenda, Priority } from '../../types';
 import { useAuth } from '../../context/AuthContext';
+import { useTodo } from '../../context/TodoContext';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { getTodayString, isPastDate, formatReadableDate, formatDisplayDate } from '../../utils/date';
 import { HeaderAgendas } from './HeaderAgendas';
@@ -13,80 +13,33 @@ import { NewDateModal } from './NewDateModal';
 import { MarkdownEditorModal } from './MarkdownEditorModal';
 import { Sparkle, CloudCheck, CalendarBlank, X } from '@phosphor-icons/react';
 
-const LOCAL_STORAGE_KEY = 'app_todo_obsidian_v3';
-
 export const ToDoModule: React.FC = () => {
   const { user } = useAuth();
+  const {
+    agendas,
+    currentAgendaId,
+    selectedDate,
+    unlockedDates,
+    tasks,
+    setCurrentAgendaId,
+    setSelectedDate,
+    createAgenda,
+    deleteAgenda,
+    addTask,
+    toggleTask,
+    deleteTask,
+    clearCompleted,
+    saveMarkdownTasks,
+    unlockDate,
+    copyYesterdayPending,
+  } = useTodo();
+
   const today = getTodayString();
-
-  const [agendas, setAgendas] = useState<Agenda[]>([
-    { id: 'agenda_tesis', name: 'TESIS', createdAt: new Date().toISOString() },
-    { id: 'agenda_trabajo', name: 'TRABAJO ENCARGADO CC', createdAt: new Date().toISOString() },
-  ]);
-
-  const [currentAgendaId, setCurrentAgendaId] = useState('agenda_tesis');
-  const [selectedDate, setSelectedDate] = useState(today);
-  const [unlockedDates, setUnlockedDates] = useState<string[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: 't_demo_1',
-      agendaId: 'agenda_tesis',
-      date: today,
-      title: 'Redactar metodología y marco teórico',
-      priority: 'high',
-      completed: false,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: 't_demo_2',
-      agendaId: 'agenda_tesis',
-      date: today,
-      title: 'Descargar 5 artículos científicos de referencia',
-      priority: 'medium',
-      completed: false,
-      createdAt: new Date().toISOString(),
-    },
-    {
-      id: 't_demo_3',
-      agendaId: 'agenda_tesis',
-      date: today,
-      title: 'Revisar formato y normas de citación APA',
-      priority: 'low',
-      completed: true,
-      completedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-    },
-  ]);
-
   const [isAgendaModalOpen, setIsAgendaModalOpen] = useState(false);
   const [isDateModalOpen, setIsDateModalOpen] = useState(false);
   const [isMarkdownModalOpen, setIsMarkdownModalOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [syncedLogStatus, setSyncedLogStatus] = useState<string | null>(null);
-
-  // Load from LocalStorage or Supabase
-  useEffect(() => {
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.agendas) setAgendas(parsed.agendas);
-        if (parsed.currentAgendaId) setCurrentAgendaId(parsed.currentAgendaId);
-        if (parsed.tasks) setTasks(parsed.tasks);
-        if (parsed.unlockedDates) setUnlockedDates(parsed.unlockedDates);
-      } catch (e) {
-        console.error('Error loading todo state', e);
-      }
-    }
-  }, []);
-
-  // Persist locally
-  useEffect(() => {
-    localStorage.setItem(
-      LOCAL_STORAGE_KEY,
-      JSON.stringify({ agendas, currentAgendaId, tasks, unlockedDates })
-    );
-  }, [agendas, currentAgendaId, tasks, unlockedDates]);
 
   // Sync Daily Log Markdown to Supabase when day changes or tasks change
   useEffect(() => {
@@ -101,7 +54,7 @@ export const ToDoModule: React.FC = () => {
       const completed = dayTasks.filter((t) => t.completed).length;
       const rate = Math.round((completed / total) * 100);
 
-      let md = `# 📅 ${activeAgenda.name} — ${formatDisplayDate(selectedDate)}\n\n`;
+      let md = `# 📅 ${activeAgenda?.name || 'AGENDA'} — ${formatDisplayDate(selectedDate)}\n\n`;
       md += `> **Métricas:** ${completed} de ${total} completadas (${rate}%)\n\n`;
       md += `### 📝 Tareas Pendientes\n`;
       const pending = dayTasks.filter((t) => !t.completed);
@@ -129,7 +82,7 @@ export const ToDoModule: React.FC = () => {
             user_id: user.id,
             date: selectedDate,
             agenda_id: currentAgendaId,
-            agenda_name: activeAgenda.name,
+            agenda_name: activeAgenda?.name || 'AGENDA',
             markdown_content: md,
             tasks_snapshot: dayTasks,
             total_tasks: total,
@@ -176,110 +129,22 @@ export const ToDoModule: React.FC = () => {
     return isPast && !isUnlocked;
   }, [selectedDate, unlockedDates]);
 
-  // Copy yesterday's template / uncompleted tasks to today
-  const handleCopyYesterdayPending = () => {
-    const yesterdayDate = new Date();
-    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-    const yStr = `${yesterdayDate.getFullYear()}-${String(yesterdayDate.getMonth() + 1).padStart(2, '0')}-${String(yesterdayDate.getDate()).padStart(2, '0')}`;
-
-    const yesterdayPending = tasks.filter((t) => t.agendaId === currentAgendaId && t.date === yStr && !t.completed);
-    if (yesterdayPending.length === 0) {
-      alert('No se encontraron tareas pendientes del día de ayer para transferir.');
-      return;
-    }
-
-    const copiedTasks: Task[] = yesterdayPending.map((t) => ({
-      ...t,
-      id: 'task_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
-      date: today,
-      completed: false,
-      createdAt: new Date().toISOString(),
-    }));
-
-    setTasks((prev) => [...prev, ...copiedTasks]);
-  };
-
-  // Handlers
-  const handleSelectAgenda = (agendaId: string) => setCurrentAgendaId(agendaId);
-
-  const handleCreateAgenda = (name: string) => {
-    const newId = `agenda_${Date.now()}`;
-    const newAgenda = { id: newId, name, createdAt: new Date().toISOString() };
-    setAgendas((prev) => [...prev, newAgenda]);
-    setCurrentAgendaId(newId);
-  };
-
-  const handleDeleteAgenda = (agendaId: string, e: React.MouseEvent) => {
+  const handleDeleteAgendaClick = (agendaId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (agendas.length <= 1) {
       alert('Debes mantener al menos una agenda activa.');
       return;
     }
     if (confirm('¿Eliminar esta agenda y todas sus tareas asociadas?')) {
-      setAgendas((prev) => prev.filter((a) => a.id !== agendaId));
-      setTasks((prev) => prev.filter((t) => t.agendaId !== agendaId));
-      if (currentAgendaId === agendaId) {
-        setCurrentAgendaId(agendas[0].id);
-      }
+      deleteAgenda(agendaId);
     }
   };
 
-  const handleSelectDate = (date: string) => {
-    setSelectedDate(date);
-    setIsMobileSidebarOpen(false);
-  };
-
-  const handleUnlockCurrentDate = () => {
-    setUnlockedDates((prev) => [...prev, selectedDate]);
-  };
-
-  const handleAddTask = (title: string, priority: Priority) => {
-    const newTask: Task = {
-      id: `task_${Date.now()}`,
-      agendaId: currentAgendaId,
-      date: selectedDate,
-      title,
-      priority,
-      completed: false,
-      createdAt: new Date().toISOString(),
-    };
-    setTasks((prev) => [...prev, newTask]);
-  };
-
-  const handleToggleTask = (taskId: string) => {
-    setTasks((prev) =>
-      prev.map((t) => {
-        if (t.id !== taskId) return t;
-        const nextCompleted = !t.completed;
-        return {
-          ...t,
-          completed: nextCompleted,
-          completedAt: nextCompleted ? new Date().toISOString() : null,
-        };
-      })
-    );
-  };
-
-  const handleDeleteTask = (taskId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setTasks((prev) => prev.filter((t) => t.id !== taskId));
-  };
-
-  const handleClearCompleted = () => {
-    if (confirm('¿Eliminar todas las tareas completadas de esta fecha?')) {
-      setTasks((prev) =>
-        prev.filter((t) => !(t.agendaId === currentAgendaId && t.date === selectedDate && t.completed))
-      );
+  const handleCopyYesterday = () => {
+    const ok = copyYesterdayPending();
+    if (!ok) {
+      alert('No se encontraron tareas pendientes del día de ayer para transferir.');
     }
-  };
-
-  // Replace active day tasks with imported Markdown tasks
-  const handleSaveMarkdownTasks = (parsedTasks: Task[]) => {
-    setTasks((prev) => {
-      // Remove previous tasks for this agenda and date, and replace with parsed list
-      const others = prev.filter((t) => !(t.agendaId === currentAgendaId && t.date === selectedDate));
-      return [...others, ...parsedTasks];
-    });
   };
 
   return (
@@ -288,9 +153,9 @@ export const ToDoModule: React.FC = () => {
       <HeaderAgendas
         agendas={agendas}
         currentAgendaId={currentAgendaId}
-        onSelectAgenda={handleSelectAgenda}
+        onSelectAgenda={setCurrentAgendaId}
         onOpenNewAgendaModal={() => setIsAgendaModalOpen(true)}
-        onDeleteAgenda={handleDeleteAgenda}
+        onDeleteAgenda={handleDeleteAgendaClick}
       />
 
       {/* Main Workspace Layout */}
@@ -301,7 +166,7 @@ export const ToDoModule: React.FC = () => {
             dates={allDates}
             selectedDate={selectedDate}
             unlockedDates={unlockedDates}
-            onSelectDate={handleSelectDate}
+            onSelectDate={setSelectedDate}
             onAddCustomDate={() => setIsDateModalOpen(true)}
           />
         </div>
@@ -328,7 +193,10 @@ export const ToDoModule: React.FC = () => {
                   dates={allDates}
                   selectedDate={selectedDate}
                   unlockedDates={unlockedDates}
-                  onSelectDate={handleSelectDate}
+                  onSelectDate={(d) => {
+                    setSelectedDate(d);
+                    setIsMobileSidebarOpen(false);
+                  }}
                   onAddCustomDate={() => {
                     setIsMobileSidebarOpen(false);
                     setIsDateModalOpen(true);
@@ -379,7 +247,7 @@ export const ToDoModule: React.FC = () => {
 
               {selectedDate === today && filteredTasks.length === 0 && (
                 <button
-                  onClick={handleCopyYesterdayPending}
+                  onClick={handleCopyYesterday}
                   className="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-zinc-300 flex items-center gap-1.5 transition-colors"
                 >
                   <Sparkle size={14} className="text-amber-400" />
@@ -392,16 +260,19 @@ export const ToDoModule: React.FC = () => {
           {/* Quick Add Task Bar */}
           <TaskInputBar
             isLocked={isCurrentDateLocked}
-            onAddTask={handleAddTask}
-            onUnlockDate={handleUnlockCurrentDate}
+            onAddTask={addTask}
+            onUnlockDate={() => unlockDate(selectedDate)}
           />
 
-          {/* Dual Columns Board (Tareas vs Hechas) */}
+          {/* Dual Columns Board */}
           <DualTaskBoard
             pendingTasks={pendingTasks}
             doneTasks={doneTasks}
-            onToggleTask={handleToggleTask}
-            onDeleteTask={handleDeleteTask}
+            onToggleTask={toggleTask}
+            onDeleteTask={(id, e) => {
+              e.stopPropagation();
+              deleteTask(id);
+            }}
           />
 
           {/* Footer with Markdown Exporter & Stats */}
@@ -409,7 +280,7 @@ export const ToDoModule: React.FC = () => {
             currentAgenda={currentAgenda}
             selectedDate={selectedDate}
             tasks={filteredTasks}
-            onClearCompleted={handleClearCompleted}
+            onClearCompleted={clearCompleted}
             onOpenMarkdownEditor={() => setIsMarkdownModalOpen(true)}
           />
         </main>
@@ -419,13 +290,13 @@ export const ToDoModule: React.FC = () => {
       <NewAgendaModal
         isOpen={isAgendaModalOpen}
         onClose={() => setIsAgendaModalOpen(false)}
-        onSave={handleCreateAgenda}
+        onSave={createAgenda}
       />
 
       <NewDateModal
         isOpen={isDateModalOpen}
         onClose={() => setIsDateModalOpen(false)}
-        onSelectDate={handleSelectDate}
+        onSelectDate={setSelectedDate}
       />
 
       <MarkdownEditorModal
@@ -434,7 +305,7 @@ export const ToDoModule: React.FC = () => {
         selectedDate={selectedDate}
         tasks={filteredTasks}
         onClose={() => setIsMarkdownModalOpen(false)}
-        onSaveMarkdown={handleSaveMarkdownTasks}
+        onSaveMarkdown={saveMarkdownTasks}
       />
     </div>
   );
