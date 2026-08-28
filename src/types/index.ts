@@ -59,10 +59,10 @@ export interface Transaction {
   fund_type: FundType;
   amount: number;
   category: string;
-  counterparty_concept: string; // "Detalle / Concepto"
+  counterparty_concept: string;
   notes?: string;
   date: string; // "YYYY-MM-DD"
-  scheduled_datetime?: string; // "YYYY-MM-DDTHH:mm" for pending expenses
+  scheduled_datetime?: string; // "YYYY-MM-DDTHH:mm"
   status?: 'pending' | 'completed' | 'cancelled';
   created_at: string;
 }
@@ -85,7 +85,11 @@ export interface FinanceSummary {
   digitalBalance: number;
   protectedReserve: number;
   freeSpendingBalance: number;
+  freePhysicalBalance: number;
+  freeDigitalBalance: number;
   pendingExpenseTotal: number;
+  pendingPhysicalTotal: number;
+  pendingDigitalTotal: number;
   effectiveFreeBalance: number;
   pendingExpensesCount: number;
   totalIncome: number;

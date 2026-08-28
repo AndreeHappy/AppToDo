@@ -2,13 +2,12 @@
 import { motion } from 'framer-motion';
 import {
   Wallet,
-  LockKey,
-  ShieldCheck,
   WarningCircle,
   DeviceMobile,
   Money,
   PencilSimple,
   ClockCountdown,
+  LockKey,
 } from '@phosphor-icons/react';
 import type { FinanceSummary } from '../../types';
 
@@ -24,145 +23,164 @@ export const BalanceCards: React.FC<Props> = ({
   onOpenReserveSettings,
 }) => {
   const isReserveIntact = summary.protectedReserve >= baseReserve;
-  const reserveDeficit = baseReserve - summary.protectedReserve;
+  const isPhysicalNegative = summary.physicalBalance <= 0;
+  const isDigitalNegative = summary.digitalBalance < 0;
+  const isFreeZero = summary.freeSpendingBalance <= 0;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-      {/* CARD 1: SALDO TOTAL NETO */}
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+      {/* TARJETA 1: SALDO TOTAL NETO Y AHORRO BASE */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-        className="p-6 rounded-3xl bg-[#11131a] border border-white/[0.08] flex flex-col justify-between shadow-lg"
+        className="p-6 sm:p-7 rounded-3xl bg-[#11131a] border border-white/[0.08] flex flex-col justify-between shadow-xl"
       >
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-            Saldo Total Neto
-          </span>
-          <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-            <Wallet size={18} weight="bold" />
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+              Saldo Total Neto
+            </span>
+          </div>
+          <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+            <Wallet size={20} weight="bold" />
           </div>
         </div>
 
-        <div className="my-3">
-          <div className="text-3xl font-black text-white font-mono tracking-tight">
+        <div className="my-4">
+          <div className="text-3xl sm:text-4xl font-black text-white font-mono tracking-tight">
             S/. {summary.totalBalance.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
+
+          {/* Desglose de Fondos Totales */}
+          <div className="flex items-center gap-4 mt-2 text-xs font-mono">
+            <div className="flex items-center gap-1.5">
+              <Money size={15} className={isPhysicalNegative ? 'text-rose-400' : 'text-emerald-400'} />
+              <span className="text-zinc-400">Efectivo:</span>
+              <span className={`font-bold ${isPhysicalNegative ? 'text-rose-400' : 'text-zinc-200'}`}>
+                S/. {summary.physicalBalance.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+
+            <span className="text-zinc-600">•</span>
+
+            <div className="flex items-center gap-1.5">
+              <DeviceMobile size={15} className={isDigitalNegative ? 'text-rose-400' : 'text-indigo-400'} />
+              <span className="text-zinc-400">Digital:</span>
+              <span className={`font-bold ${isDigitalNegative ? 'text-rose-400' : 'text-zinc-200'}`}>
+                S/. {summary.digitalBalance.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+          </div>
         </div>
 
-        {/* Breakdown Físico vs Digital */}
-        <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs text-zinc-400">
-          <div className="flex items-center gap-1.5 font-mono">
-            <Money size={14} className="text-emerald-400" />
-            <span>Físico: </span>
-            <span className="text-zinc-200 font-semibold">
-              S/. {summary.physicalBalance.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+        {/* Pie con Estado del Fondo de Ahorro */}
+        <div className="pt-3.5 border-t border-white/[0.06] flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded-md bg-indigo-500/15 text-indigo-400 flex items-center justify-center">
+              <LockKey size={12} weight="bold" />
+            </div>
+            <span className="text-zinc-400">
+              Fondo de Ahorro: <strong className="text-white font-mono font-bold">S/. {summary.protectedReserve.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</strong>
             </span>
           </div>
-          <div className="flex items-center gap-1.5 font-mono">
-            <DeviceMobile size={14} className="text-indigo-400" />
-            <span>Digital: </span>
-            <span className="text-zinc-200 font-semibold">
-              S/. {summary.digitalBalance.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
-            </span>
-          </div>
+
+          <button
+            onClick={onOpenReserveSettings}
+            title="Ajustar fondo de reserva"
+            className="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-zinc-300 hover:text-white flex items-center gap-1 transition-colors"
+          >
+            <span>Base S/. {baseReserve.toLocaleString('es-PE')}</span>
+            <PencilSimple size={12} />
+          </button>
         </div>
       </motion.div>
 
-      {/* CARD 2: FONDO DE AHORRO PROTEGIDO */}
+      {/* TARJETA 2: SALDO LIBRE PARA GASTOS (CON DESGLOSE FÍSICO Y DIGITAL) */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.05 }}
-        className={`p-6 rounded-3xl border flex flex-col justify-between shadow-lg relative overflow-hidden ${
-          isReserveIntact
-            ? 'bg-[#14181a] border-amber-500/40 shadow-[0_4px_25px_rgba(245,158,11,0.08)]'
-            : 'bg-[#1a1215] border-rose-500/40 shadow-[0_4px_25px_rgba(244,63,94,0.1)]'
+        className={`p-6 sm:p-7 rounded-3xl border flex flex-col justify-between shadow-xl ${
+          isFreeZero
+            ? 'bg-[#151218] border-rose-500/30'
+            : 'bg-[#11131a] border-white/[0.08]'
         }`}
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-amber-400 uppercase tracking-wider">
-            <LockKey size={16} weight="fill" />
-            <span>Fondo de Ahorro</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+              Saldo Libre Para Gastos
+            </span>
           </div>
-
-          <button
-            onClick={onOpenReserveSettings}
-            title="Cambiar monto de reserva"
-            className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-500/15 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 flex items-center gap-1 transition-colors"
-          >
-            <span>Base S/. {baseReserve.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
-            <PencilSimple size={11} />
-          </button>
-        </div>
-
-        <div className="my-3">
-          <div className="text-3xl font-black text-amber-300 font-mono tracking-tight">
-            S/. {summary.protectedReserve.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </div>
-        </div>
-
-        <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs">
-          {isReserveIntact ? (
-            <div className="flex items-center gap-1.5 text-emerald-400">
-              <ShieldCheck size={15} weight="bold" />
-              <span>Reserva 100% Intacta y Segura</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1.5 text-rose-400 font-semibold">
-              <WarningCircle size={15} weight="fill" />
-              <span>Déficit de urgencia: -S/. {reserveDeficit.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
-            </div>
-          )}
-
-          <button
-            onClick={onOpenReserveSettings}
-            className="text-[11px] text-amber-400/80 hover:text-amber-300 underline font-medium"
-          >
-            Ajustar
-          </button>
-        </div>
-      </motion.div>
-
-      {/* CARD 3: SALDO LIBRE PARA GASTOS */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.1 }}
-        className="p-6 rounded-3xl bg-[#11131a] border border-white/[0.08] flex flex-col justify-between shadow-lg"
-      >
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-            Saldo Libre Para Gastos
-          </span>
-          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold text-sm font-mono">
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm font-mono border ${
+            isFreeZero
+              ? 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+              : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+          }`}>
             S/.
           </div>
         </div>
 
-        <div className="my-2">
-          <div className="text-3xl font-black text-emerald-400 font-mono tracking-tight">
+        <div className="my-4">
+          <div className={`text-3xl sm:text-4xl font-black font-mono tracking-tight ${
+            isFreeZero ? 'text-rose-400' : 'text-emerald-400'
+          }`}>
             S/. {summary.freeSpendingBalance.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
 
-          {/* Subtitle if there are pending expenses scheduled */}
-          {summary.pendingExpenseTotal > 0 ? (
-            <div className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-lg">
-              <ClockCountdown size={13} weight="bold" />
+          {/* Desglose de Dinero Libre por Tipo de Fondo */}
+          <div className="flex items-center gap-4 mt-2 text-xs font-mono">
+            <div className="flex items-center gap-1.5">
+              <Money size={15} className={summary.freePhysicalBalance <= 0 ? 'text-rose-400' : 'text-emerald-400'} />
+              <span className="text-zinc-400">Libre Físico:</span>
+              <span className={`font-bold ${summary.freePhysicalBalance <= 0 ? 'text-rose-400' : 'text-emerald-300'}`}>
+                S/. {summary.freePhysicalBalance.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+
+            <span className="text-zinc-600">•</span>
+
+            <div className="flex items-center gap-1.5">
+              <DeviceMobile size={15} className={summary.freeDigitalBalance <= 0 ? 'text-rose-400' : 'text-indigo-400'} />
+              <span className="text-zinc-400">Libre Digital:</span>
+              <span className={`font-bold ${summary.freeDigitalBalance <= 0 ? 'text-rose-400' : 'text-indigo-300'}`}>
+                S/. {summary.freeDigitalBalance.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+          </div>
+
+          {/* Aviso si hay deficit */}
+          {(summary.freePhysicalBalance <= 0 || summary.freeDigitalBalance <= 0) && (
+            <div className="mt-2.5 flex items-center gap-1.5 text-[11px] font-semibold text-rose-400 bg-rose-500/10 border border-rose-500/25 px-2.5 py-1 rounded-lg">
+              <WarningCircle size={14} weight="fill" className="shrink-0" />
+              <span>
+                {summary.freePhysicalBalance <= 0 && summary.freeDigitalBalance <= 0
+                  ? 'No dispones de saldo libre. Requiere nuevo ingreso para realizar gastos.'
+                  : summary.freePhysicalBalance <= 0
+                  ? 'Efectivo agotado. Solo puedes gastar desde fondo Digital.'
+                  : 'Fondo Digital agotado. Solo puedes gastar en Efectivo.'}
+              </span>
+            </div>
+          )}
+
+          {/* Aviso si hay gastos pendientes programados */}
+          {summary.pendingExpenseTotal > 0 && (
+            <div className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-lg">
+              <ClockCountdown size={14} weight="bold" className="shrink-0" />
               <span>
                 Se gastarán S/. {summary.pendingExpenseTotal.toFixed(2)} en pendientes (Quedará S/. {summary.effectiveFreeBalance.toFixed(2)})
               </span>
             </div>
-          ) : (
-            <span className="text-[11px] text-zinc-500">
-              Dinero disponible sin afectar tu ahorro
-            </span>
           )}
         </div>
 
-        <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs text-zinc-400">
-          <span>Base protegida: S/. {baseReserve.toLocaleString('es-PE')}</span>
-          <span className="font-mono text-zinc-300">Total - S/. {baseReserve.toLocaleString('es-PE')}</span>
+        {/* Pie explicativo */}
+        <div className="pt-3.5 border-t border-white/[0.06] flex items-center justify-between text-xs text-zinc-400">
+          <span>Dinero disponible sin afectar tu ahorro base</span>
+          <span className="font-mono text-zinc-300">
+            {isReserveIntact ? 'Ahorro 100% Protegido' : 'Déficit en Ahorro'}
+          </span>
         </div>
       </motion.div>
     </div>

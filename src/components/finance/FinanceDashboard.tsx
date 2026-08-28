@@ -3,7 +3,6 @@ import {
   Plus,
   ShieldWarning,
   Bank,
-  Gear,
 } from '@phosphor-icons/react';
 import type {
   TransactionType,
@@ -104,15 +103,6 @@ export const FinanceDashboard: React.FC<Props> = () => {
 
         {/* Buttons */}
         <div className="flex items-center gap-2.5 flex-wrap">
-          <button
-            onClick={() => setIsReserveModalOpen(true)}
-            title="Modificar monto de reserva protegida"
-            className="px-3 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-zinc-300 flex items-center gap-1.5 transition-colors"
-          >
-            <Gear size={14} />
-            <span>Ajustar Reserva (S/. {baseReserve.toLocaleString('es-PE')})</span>
-          </button>
-
           {emergencyLogs.length > 0 && (
             <button
               onClick={() => setIsLogModalOpen(true)}
@@ -153,6 +143,8 @@ export const FinanceDashboard: React.FC<Props> = () => {
       <TransactionFormModal
         isOpen={isFormModalOpen}
         freeSpendingBalance={summary.freeSpendingBalance}
+        physicalBalance={summary.physicalBalance}
+        digitalBalance={summary.digitalBalance}
         onClose={() => setIsFormModalOpen(false)}
         onSubmit={addTransaction}
         onRequestEmergencyApproval={handleRequestEmergencyApproval}

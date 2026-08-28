@@ -19,6 +19,8 @@ import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '../../constants/categorie
 interface Props {
   isOpen: boolean;
   freeSpendingBalance: number;
+  physicalBalance?: number;
+  digitalBalance?: number;
   onClose: () => void;
   onSubmit: (data: {
     type: TransactionType;
@@ -47,6 +49,8 @@ interface Props {
 export const TransactionFormModal: React.FC<Props> = ({
   isOpen,
   freeSpendingBalance,
+  physicalBalance = 0,
+  digitalBalance = 0,
   onClose,
   onSubmit,
   onRequestEmergencyApproval,
@@ -61,7 +65,17 @@ export const TransactionFormModal: React.FC<Props> = ({
   const [scheduledDatetime, setScheduledDatetime] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Default future time (now + 1 hour)
+  // Default future time: current time + 2 hours
+  const getDefaultScheduledDatetime = () => {
+    const future = new Date(Date.now() + 2 * 60 * 60 * 1000);
+    const year = future.getFullYear();
+    const month = String(future.getMonth() + 1).padStart(2, '0');
+    const day = String(future.getDate()).padStart(2, '0');
+    const hours = String(future.getHours()).padStart(2, '0');
+    const minutes = String(future.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
   const getMinDatetime = () => {
     const now = new Date();
     const year = now.getFullYear();
@@ -78,7 +92,7 @@ export const TransactionFormModal: React.FC<Props> = ({
       setCounterpartyConcept('');
       setNotes('');
       setDate(getTodayString());
-      setScheduledDatetime(getMinDatetime());
+      setScheduledDatetime(getDefaultScheduledDatetime());
       setErrorMsg(null);
       setCategory(type === 'income' ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0]);
     }
@@ -89,6 +103,8 @@ export const TransactionFormModal: React.FC<Props> = ({
     setCategory(newType === 'income' ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0]);
     setErrorMsg(null);
   };
+
+  const currentAvailableFund = fundType === 'physical' ? physicalBalance : digitalBalance;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,29 +130,40 @@ export const TransactionFormModal: React.FC<Props> = ({
       }
 
       const scheduledTime = new Date(scheduledDatetime).getTime();
-      const currentTime = new Date().getTime();
+      const currentTime = Date.now();
 
-      if (scheduledTime <= currentTime - 60000) {
+      if (scheduledTime <= currentTime) {
         setErrorMsg('La fecha y hora del gasto pendiente debe ser posterior a la hora actual.');
         return;
       }
     }
 
-    // Check emergency reserve impact for immediate expenses
-    if (type === 'expense' && numAmount > freeSpendingBalance) {
-      const reserveImpact = numAmount - Math.max(0, freeSpendingBalance);
-      onRequestEmergencyApproval({
-        type,
-        fundType,
-        amount: numAmount,
-        category,
-        counterpartyConcept: cleanConcept,
-        notes: notes.trim() || undefined,
-        date,
-        scheduledDatetime: undefined,
-        reserveImpact,
-      });
-      return;
+    // Fund deficit check for immediate expenses
+    if (type === 'expense') {
+      if (currentAvailableFund <= 0) {
+        setErrorMsg(
+          `No tienes saldo disponible en ${
+            fundType === 'physical' ? 'Efectivo/Físico' : 'Digital/Bancos'
+          } (Disponible: S/. ${currentAvailableFund.toFixed(2)}). Realiza un ingreso primero.`
+        );
+        return;
+      }
+
+      if (numAmount > freeSpendingBalance) {
+        const reserveImpact = numAmount - Math.max(0, freeSpendingBalance);
+        onRequestEmergencyApproval({
+          type,
+          fundType,
+          amount: numAmount,
+          category,
+          counterpartyConcept: cleanConcept,
+          notes: notes.trim() || undefined,
+          date,
+          scheduledDatetime: undefined,
+          reserveImpact,
+        });
+        return;
+      }
     }
 
     onSubmit({
@@ -147,7 +174,7 @@ export const TransactionFormModal: React.FC<Props> = ({
       counterpartyConcept: cleanConcept,
       notes: notes.trim() || undefined,
       date: type === 'pending_expense' ? scheduledDatetime.split('T')[0] : date,
-      scheduledDatetime: undefined,
+      scheduledDatetime: type === 'pending_expense' ? scheduledDatetime : undefined,
     });
     onClose();
   };
@@ -167,9 +194,9 @@ export const TransactionFormModal: React.FC<Props> = ({
           />
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 12 }}
+            initial={{ opacity: 0, scale: 0.96, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 12 }}
+            exit={{ opacity: 0, scale: 0.96, y: 10 }}
             transition={{ type: 'spring', stiffness: 350, damping: 26 }}
             className="relative z-10 w-full max-w-md rounded-3xl bg-[#12141e] border border-white/[0.1] p-6 sm:p-7 shadow-2xl flex flex-col gap-5 text-zinc-100"
           >
@@ -248,11 +275,19 @@ export const TransactionFormModal: React.FC<Props> = ({
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
-              {/* Fund Type (Físico vs Digital) */}
+              {/* Fund Type (Físico vs Digital) with available balance indicator */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                  Tipo de Fondo
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+                    Tipo de Fondo
+                  </label>
+                  <span className="text-[11px] font-mono text-zinc-400">
+                    Disp: <strong className={currentAvailableFund <= 0 ? 'text-rose-400' : 'text-emerald-400'}>
+                      S/. {currentAvailableFund.toFixed(2)}
+                    </strong>
+                  </span>
+                </div>
+
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
@@ -264,7 +299,7 @@ export const TransactionFormModal: React.FC<Props> = ({
                     }`}
                   >
                     <DeviceMobile size={15} />
-                    <span>Digital / Bancos</span>
+                    <span>Digital (S/. {digitalBalance.toFixed(0)})</span>
                   </button>
 
                   <button
@@ -277,7 +312,7 @@ export const TransactionFormModal: React.FC<Props> = ({
                     }`}
                   >
                     <Money size={15} />
-                    <span>Efectivo / Físico</span>
+                    <span>Efectivo (S/. {physicalBalance.toFixed(0)})</span>
                   </button>
                 </div>
               </div>
@@ -328,12 +363,12 @@ export const TransactionFormModal: React.FC<Props> = ({
                 </div>
               </div>
 
-              {/* Pending Expense Alert / Notice */}
+              {/* Pending Expense Alert */}
               {type === 'pending_expense' && (
                 <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs flex items-center gap-2">
                   <ClockCountdown size={16} weight="bold" className="shrink-0 text-amber-400" />
                   <span className="text-[11px] leading-tight">
-                    Este gasto se consumirá automáticamente cuando llegue la fecha y hora seleccionada.
+                    Este gasto se cobrará/descontará automáticamente cuando llegue la fecha y hora seleccionada.
                   </span>
                 </div>
               )}

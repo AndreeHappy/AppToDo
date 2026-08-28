@@ -49,20 +49,26 @@ interface FinanceContextType {
 
 const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
 
-const LOCAL_STORAGE_TX_KEY = 'app_finance_transactions_v3';
-const LOCAL_STORAGE_EMERGENCY_KEY = 'app_finance_emergency_v3';
+const LOCAL_STORAGE_TX_KEY = 'app_finance_transactions_v4';
+const LOCAL_STORAGE_EMERGENCY_KEY = 'app_finance_emergency_v4';
 
 export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, profile } = useAuth();
   const baseReserve = profile?.protected_reserve_base ?? 950.00;
 
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    const saved = localStorage.getItem(LOCAL_STORAGE_TX_KEY) || localStorage.getItem('app_finance_transactions_v2');
+    const saved =
+      localStorage.getItem(LOCAL_STORAGE_TX_KEY) ||
+      localStorage.getItem('app_finance_transactions_v3') ||
+      localStorage.getItem('app_finance_transactions_v2');
     return saved ? JSON.parse(saved) : [];
   });
 
   const [emergencyLogs, setEmergencyLogs] = useState<EmergencyWithdrawal[]>(() => {
-    const saved = localStorage.getItem(LOCAL_STORAGE_EMERGENCY_KEY) || localStorage.getItem('app_finance_emergency_v2');
+    const saved =
+      localStorage.getItem(LOCAL_STORAGE_EMERGENCY_KEY) ||
+      localStorage.getItem('app_finance_emergency_v3') ||
+      localStorage.getItem('app_finance_emergency_v2');
     return saved ? JSON.parse(saved) : [];
   });
 
@@ -110,17 +116,18 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [user]);
 
-  // Routine: Auto-execute pending expenses whose scheduled date/time has arrived
+  // Routine: Auto-execute pending expenses strictly when scheduled datetime has truly passed
   useEffect(() => {
     const checkScheduledExpenses = async () => {
-      const now = new Date();
+      const nowMs = Date.now();
       let hasUpdates = false;
 
       const updated = await Promise.all(
         transactions.map(async (tx) => {
           if (tx.type === 'pending_expense' && tx.scheduled_datetime) {
-            const sched = new Date(tx.scheduled_datetime);
-            if (sched <= now) {
+            const schedMs = new Date(tx.scheduled_datetime).getTime();
+            // Only auto-execute if scheduled time is valid and in the past
+            if (!isNaN(schedMs) && schedMs <= nowMs) {
               hasUpdates = true;
               const completedTx: Transaction = {
                 ...tx,
@@ -152,7 +159,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
 
     checkScheduledExpenses();
-    const interval = setInterval(checkScheduledExpenses, 15000); // Check every 15 seconds
+    const interval = setInterval(checkScheduledExpenses, 30000);
     return () => clearInterval(interval);
   }, [transactions, user]);
 
@@ -180,7 +187,8 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     let incDigital = 0;
     let expPhysical = 0;
     let expDigital = 0;
-    let pendingExpenseTotal = 0;
+    let pendingPhysicalTotal = 0;
+    let pendingDigitalTotal = 0;
 
     transactions.forEach((tx) => {
       const amt = Number(tx.amount) || 0;
@@ -191,7 +199,8 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         if (tx.fund_type === 'physical') expPhysical += amt;
         else expDigital += amt;
       } else if (tx.type === 'pending_expense') {
-        pendingExpenseTotal += amt;
+        if (tx.fund_type === 'physical') pendingPhysicalTotal += amt;
+        else pendingDigitalTotal += amt;
       }
     });
 
@@ -203,6 +212,12 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const protectedReserve = Math.max(0, Math.min(totalBalance, baseReserve));
     const freeSpendingBalance = Math.max(0, totalBalance - baseReserve);
+
+    // Free balance per fund (assuming reserve comes from digital first, or proportional)
+    const freePhysicalBalance = physicalBalance;
+    const freeDigitalBalance = digitalBalance - protectedReserve;
+
+    const pendingExpenseTotal = pendingPhysicalTotal + pendingDigitalTotal;
     const effectiveFreeBalance = Math.max(0, freeSpendingBalance - pendingExpenseTotal);
 
     return {
@@ -211,7 +226,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       digitalBalance,
       protectedReserve,
       freeSpendingBalance,
+      freePhysicalBalance,
+      freeDigitalBalance,
       pendingExpenseTotal,
+      pendingPhysicalTotal,
+      pendingDigitalTotal,
       effectiveFreeBalance,
       pendingExpensesCount: pendingExpenses.length,
       totalIncome,

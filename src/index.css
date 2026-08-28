@@ -10,12 +10,11 @@
   }
 }
 
-/* THEME SYSTEM STYLES */
+/* THEME VARIABLES */
 html.dark {
   color-scheme: dark;
   --bg-main: #090a0f;
   --bg-surface: #11131a;
-  --bg-surface-elevated: #151824;
   --bg-input: #0e1017;
   --text-main: #f4f4f5;
   --text-muted: #a1a1aa;
@@ -24,13 +23,12 @@ html.dark {
 
 html.light {
   color-scheme: light;
-  --bg-main: #f4f5fa;
+  --bg-main: #f4f6fb;
   --bg-surface: #ffffff;
-  --bg-surface-elevated: #f8fafc;
-  --bg-input: #f1f5f9;
+  --bg-input: #eef2f7;
   --text-main: #0f172a;
-  --text-muted: #64748b;
-  --border-main: rgba(0, 0, 0, 0.08);
+  --text-muted: #475569;
+  --border-main: rgba(0, 0, 0, 0.1);
 }
 
 body {
@@ -39,12 +37,12 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Light mode overrides for container backgrounds and texts */
+/* LIGHT MODE CRISP OVERRIDES */
 html.light .bg-\[\#090a0f\],
 html.light .bg-\[\#0b0c10\],
 html.light .bg-\[\#0d0e14\],
 html.light .bg-\[\#0f1117\] {
-  background-color: #f4f5fa !important;
+  background-color: #f4f6fb !important;
 }
 
 html.light .bg-\[\#11131a\],
@@ -55,14 +53,22 @@ html.light .bg-\[\#141620\],
 html.light .bg-\[\#14181a\],
 html.light .bg-\[\#181a24\] {
   background-color: #ffffff !important;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06);
 }
 
 html.light .bg-zinc-900,
 html.light .bg-zinc-900\/90,
 html.light .bg-zinc-900\/80,
 html.light .bg-zinc-900\/60 {
-  background-color: #f1f5f9 !important;
+  background-color: #eef2f7 !important;
+}
+
+html.light .bg-zinc-800,
+html.light .bg-zinc-800\/80,
+html.light .bg-zinc-800\/40,
+html.light .bg-zinc-800\/30 {
+  background-color: #e2e8f0 !important;
+  color: #1e293b !important;
 }
 
 html.light .text-white,
@@ -73,7 +79,11 @@ html.light .text-zinc-200 {
 
 html.light .text-zinc-300,
 html.light .text-zinc-400 {
-  color: #475569 !important;
+  color: #334155 !important;
+}
+
+html.light .text-zinc-500 {
+  color: #64748b !important;
 }
 
 html.light .border-white\/\[0\.08\],
@@ -81,10 +91,10 @@ html.light .border-white\/\[0\.07\],
 html.light .border-white\/\[0\.06\],
 html.light .border-zinc-800,
 html.light .border-zinc-700 {
-  border-color: rgba(0, 0, 0, 0.08) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
 }
 
-/* Custom scrollbars */
+/* Custom Scrollbars */
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;

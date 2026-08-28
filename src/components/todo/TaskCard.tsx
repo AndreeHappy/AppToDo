@@ -16,19 +16,19 @@ const priorityConfig: Record<
   high: {
     label: 'Urgente',
     leftBorder: 'border-l-rose-500',
-    badgeColor: 'bg-rose-500/10 text-rose-300 border-rose-500/25',
+    badgeColor: 'bg-rose-500/10 text-rose-400 border-rose-500/25',
     icon: <Flame size={12} weight="fill" className="text-rose-400" />,
   },
   medium: {
     label: 'Importante',
     leftBorder: 'border-l-amber-500',
-    badgeColor: 'bg-amber-500/10 text-amber-300 border-amber-500/25',
+    badgeColor: 'bg-amber-500/10 text-amber-400 border-amber-500/25',
     icon: <Lightning size={12} weight="fill" className="text-amber-400" />,
   },
   low: {
     label: 'Rápida',
     leftBorder: 'border-l-emerald-500',
-    badgeColor: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/25',
+    badgeColor: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25',
     icon: <CheckCircle size={12} weight="fill" className="text-emerald-400" />,
   },
 };
@@ -38,14 +38,12 @@ export const TaskCard: React.FC<Props> = ({ task, onToggle, onDelete }) => {
 
   return (
     <motion.div
-      layout
-      layoutId={task.id}
-      initial={{ opacity: 0, y: 6, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.96 }}
+      transition={{ duration: 0.15 }}
       onClick={() => onToggle(task.id)}
-      className={`group relative p-3.5 rounded-2xl border-y border-r border-l-4 ${config.leftBorder} border-white/[0.07] bg-[#141620] shadow-[0_2px_10px_rgba(0,0,0,0.25)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.4)] hover:translate-y-[-1px] transition-all cursor-pointer select-none flex items-start gap-3`}
+      className={`group relative p-3.5 rounded-2xl border-y border-r border-l-4 ${config.leftBorder} border-white/[0.07] bg-[#141620] shadow-[0_2px_10px_rgba(0,0,0,0.15)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.25)] transition-all cursor-pointer select-none flex items-start gap-3`}
     >
       {/* Checkbox */}
       <button
@@ -54,27 +52,21 @@ export const TaskCard: React.FC<Props> = ({ task, onToggle, onDelete }) => {
           e.stopPropagation();
           onToggle(task.id);
         }}
-        className={`mt-0.5 w-5 h-5 shrink-0 rounded-lg border flex items-center justify-center transition-all ${
+        className={`mt-0.5 w-5 h-5 shrink-0 rounded-lg border flex items-center justify-center transition-colors ${
           task.completed
             ? 'bg-emerald-500 border-emerald-500 text-white shadow-xs'
-            : 'border-zinc-700 hover:border-zinc-500 bg-zinc-900/80 text-transparent'
+            : 'border-zinc-600 hover:border-zinc-400 bg-zinc-900/80 text-transparent'
         }`}
       >
-        <motion.div
-          initial={false}
-          animate={{ scale: task.completed ? 1 : 0 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-        >
-          <Check size={12} weight="bold" />
-        </motion.div>
+        {task.completed && <Check size={12} weight="bold" />}
       </button>
 
-      {/* Task Info - Paper Note Look */}
+      {/* Task Info */}
       <div className="flex-1 min-w-0">
         <p
           className={`text-xs sm:text-sm font-medium leading-snug break-words transition-all ${
             task.completed
-              ? 'text-zinc-500 line-through'
+              ? 'text-zinc-500 line-through opacity-70'
               : 'text-zinc-100 group-hover:text-white'
           }`}
         >
