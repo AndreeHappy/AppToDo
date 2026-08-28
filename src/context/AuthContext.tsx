@@ -7,9 +7,12 @@ interface AuthContextType {
   profile: UserProfile | null;
   loading: boolean;
   isMockMode: boolean;
+  isPasswordRecovery: boolean;
   login: (email: string, password: string) => Promise<{ error?: string }>;
   register: (email: string, password: string, fullName: string) => Promise<{ error?: string }>;
   logout: () => Promise<void>;
+  resetPasswordForEmail: (email: string) => Promise<{ error?: string }>;
+  updateUserPassword: (newPassword: string) => Promise<{ error?: string }>;
   updateProtectedReserve: (newBase: number) => Promise<void>;
 }
 
@@ -21,6 +24,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<{ id: string; email: string } | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   // Initialize auth state
   useEffect(() => {
@@ -38,8 +42,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setLoading(false);
         }
 
-        // Listen for auth state changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+        // Listen for auth state changes (including password recovery)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+          if (event === 'PASSWORD_RECOVERY') {
+            setIsPasswordRecovery(true);
+          }
+
           if (session?.user) {
             setUser({ id: session.user.id, email: session.user.email || '' });
             await fetchProfile(session.user.id, session.user.email || '');
@@ -82,7 +90,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data && !error) {
         setProfile(data as UserProfile);
       } else {
-        // Fallback default profile if trigger hasn't fired yet
         const defaultProf: UserProfile = {
           id: userId,
           email,
@@ -153,6 +160,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const resetPasswordForEmail = async (email: string): Promise<{ error?: string }> => {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin,
+      });
+      if (error) return { error: error.message };
+      return {};
+    } else {
+      return {};
+    }
+  };
+
+  const updateUserPassword = async (newPassword: string): Promise<{ error?: string }> => {
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (error) return { error: error.message };
+      setIsPasswordRecovery(false);
+      return {};
+    } else {
+      setIsPasswordRecovery(false);
+      return {};
+    }
+  };
+
   const logout = async () => {
     if (isSupabaseConfigured && supabase) {
       await supabase.auth.signOut();
@@ -185,9 +216,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         profile,
         loading,
         isMockMode: !isSupabaseConfigured,
+        isPasswordRecovery,
         login,
         register,
         logout,
+        resetPasswordForEmail,
+        updateUserPassword,
         updateProtectedReserve,
       }}
     >
