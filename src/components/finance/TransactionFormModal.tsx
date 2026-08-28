@@ -88,8 +88,8 @@ export const TransactionFormModal: React.FC<Props> = ({
     if (!cleanConcept) {
       setErrorMsg(
         type === 'income'
-          ? 'Por favor especifica de qué o de quién provino el ingreso.'
-          : 'Por favor especifica para qué o a quién se realizó el egreso.'
+          ? 'Por favor ingresa el detalle o concepto del ingreso.'
+          : 'Por favor ingresa el detalle o concepto del egreso.'
       );
       return;
     }
@@ -269,19 +269,17 @@ export const TransactionFormModal: React.FC<Props> = ({
                 </div>
               </div>
 
-              {/* Concept / Counterparty */}
+              {/* Detalle / Concepto */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1">
                   <User size={13} />
-                  <span>
-                    {type === 'income' ? '¿De qué o de quién? (Origen)' : '¿Para qué o a quién? (Destino)'}
-                  </span>
+                  <span>Detalle / Concepto</span>
                 </label>
                 <input
                   type="text"
                   value={counterpartyConcept}
                   onChange={(e) => setCounterpartyConcept(e.target.value)}
-                  placeholder={type === 'income' ? 'Ej: Cliente Juan Pérez / Beca' : 'Ej: Supermercado / Pasaje a la Universidad'}
+                  placeholder={type === 'income' ? 'Ej: Salario mensual / Venta / Bono' : 'Ej: Pasaje a Ilo / Almuerzo / Supermercado'}
                   required
                   className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-indigo-500 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none"
                 />
@@ -352,7 +350,7 @@ export const TransactionFormModal: React.FC<Props> = ({
                       : 'bg-rose-600 hover:bg-rose-500 text-white'
                   }`}
                 >
-                  {type === 'income' ? '+ Registrar Ingreso' : '- Registrar Egreso'}
+                  {type === 'income' ? 'Registrar Ingreso' : 'Registrar Egreso'}
                 </button>
               </div>
             </form>

@@ -167,7 +167,7 @@ export const TransactionHistory: React.FC<Props> = ({
                             </>
                           )}
                         </span>
-                        {tx.notes && (
+                        {tx.notes && tx.notes.toLowerCase() !== tx.counterparty_concept.toLowerCase() && (
                           <>
                             <span>•</span>
                             <span className="truncate max-w-xs italic text-zinc-400">
