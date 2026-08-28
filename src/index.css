@@ -10,7 +10,7 @@
   }
 }
 
-/* THEME SYSTEM */
+/* THEME VARIABLES */
 html.dark {
   color-scheme: dark;
   --bg-main: #090a0f;
@@ -37,7 +37,7 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* LIGHT MODE SURFACE OVERRIDES */
+/* LIGHT MODE SURFACE & CONTAINER OVERRIDES */
 html.light .bg-\[\#090a0f\],
 html.light .bg-\[\#0b0c10\],
 html.light .bg-\[\#0d0e14\],
@@ -85,15 +85,42 @@ html.light .border-zinc-700 {
   border-color: rgba(0, 0, 0, 0.09) !important;
 }
 
-/* Ensure active colored buttons ALWAYS have crisp pure white text */
-.bg-indigo-600,
-.bg-indigo-600 *,
-.bg-emerald-600,
-.bg-emerald-600 *,
-.bg-rose-600,
-.bg-rose-600 *,
-.bg-amber-600,
-.bg-amber-600 * {
+/* LIGHT MODE TYPOGRAPHY & HIGH CONTRAST */
+html.light .text-white,
+html.light .text-zinc-100,
+html.light .text-zinc-200 {
+  color: #0f172a !important;
+}
+
+html.light .text-zinc-300 {
+  color: #1e293b !important;
+}
+
+html.light .text-zinc-400 {
+  color: #475569 !important;
+}
+
+html.light .text-zinc-500 {
+  color: #64748b !important;
+}
+
+/* EXCEPTION: SOLID COLORED BUTTONS & PILLS MUST ALWAYS HAVE WHITE TEXT */
+html.light .bg-indigo-600,
+html.light .bg-indigo-600 *,
+html.light .bg-indigo-500,
+html.light .bg-indigo-500 *,
+html.light .bg-emerald-600,
+html.light .bg-emerald-600 *,
+html.light .bg-emerald-500,
+html.light .bg-emerald-500 *,
+html.light .bg-rose-600,
+html.light .bg-rose-600 *,
+html.light .bg-rose-500,
+html.light .bg-rose-500 *,
+html.light .bg-amber-600,
+html.light .bg-amber-600 *,
+html.light .bg-amber-500,
+html.light .bg-amber-500 * {
   color: #ffffff !important;
 }
 

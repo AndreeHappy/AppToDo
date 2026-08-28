@@ -12,12 +12,14 @@ import {
   Flame,
   Lightning,
   CheckCircle,
+  Sun,
+  Moon,
+  GithubLogo,
 } from '@phosphor-icons/react';
 import { useAuth } from '../../context/AuthContext';
 import { useFinance } from '../../context/FinanceContext';
 import { useTodo } from '../../context/TodoContext';
 import { useTheme } from '../../context/ThemeContext';
-import { Sun, Moon } from '@phosphor-icons/react';
 import { StatusBadge } from '../ui/StatusBadge';
 import type { ActiveModule } from '../../types';
 
@@ -34,7 +36,7 @@ export const DashboardHub: React.FC<Props> = ({ onSelectModule }) => {
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Usuario';
 
   return (
-    <div className="min-h-[100dvh] bg-[#090a0f] text-zinc-100 flex flex-col antialiased selection:bg-indigo-500/30">
+    <div className="min-h-[100dvh] bg-[#090a0f] text-zinc-100 flex flex-col justify-between antialiased selection:bg-indigo-500/30 transition-colors">
       {/* Top Hub Bar */}
       <header className="bg-[#11131a] border-b border-white/[0.08] px-6 sm:px-8 py-3.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -51,9 +53,22 @@ export const DashboardHub: React.FC<Props> = ({ onSelectModule }) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
           <StatusBadge isMockMode={isMockMode} className="hidden sm:inline-flex" />
 
+          {/* GitHub Repository Button */}
+          <a
+            href="https://github.com/AndreeHappy/AppToDo"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Ver repositorio en GitHub"
+            className="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-xs font-semibold text-zinc-300 hover:text-white flex items-center gap-1.5 transition-all active:scale-[0.98]"
+          >
+            <GithubLogo size={15} weight="bold" />
+            <span>GitHub</span>
+          </a>
+
+          {/* Theme Toggle Button */}
           <button
             onClick={toggleTheme}
             title={theme === 'dark' ? 'Cambiar a Tema Claro' : 'Cambiar a Tema Oscuro'}
@@ -62,6 +77,7 @@ export const DashboardHub: React.FC<Props> = ({ onSelectModule }) => {
             {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
           </button>
 
+          {/* Logout Button */}
           <button
             onClick={logout}
             title="Cerrar sesión"
@@ -74,7 +90,7 @@ export const DashboardHub: React.FC<Props> = ({ onSelectModule }) => {
       </header>
 
       {/* Main Hub Body */}
-      <main className="flex-1 max-w-6xl mx-auto w-full p-6 sm:p-8 flex flex-col justify-center gap-7 sm:gap-8">
+      <main className="flex-1 max-w-6xl mx-auto w-full p-6 sm:p-8 flex flex-col justify-center gap-7 sm:gap-8 my-auto">
         <div className="flex flex-col gap-1.5 text-left">
           <div className="inline-flex items-center gap-2 text-xs font-bold text-indigo-400 uppercase tracking-widest">
             <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
@@ -146,7 +162,7 @@ export const DashboardHub: React.FC<Props> = ({ onSelectModule }) => {
                 <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
                   <TrendUp size={26} weight="bold" />
                 </div>
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-mono bg-amber-500/15 border border-amber-500/30 text-amber-300">
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-mono bg-indigo-500/15 border border-indigo-500/30 text-indigo-300">
                   <LockKey size={13} weight="bold" />
                   <span>Reserva: S/. {baseReserve.toLocaleString('es-PE')}</span>
                 </div>
@@ -163,7 +179,7 @@ export const DashboardHub: React.FC<Props> = ({ onSelectModule }) => {
 
               {/* Feature pills */}
               <div className="flex flex-wrap gap-2 pt-1">
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-amber-500/10 border border-amber-500/30 text-amber-300">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-indigo-500/10 border border-indigo-500/30 text-indigo-300">
                   <LockKey size={12} weight="fill" /> Ahorro Blindado
                 </span>
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-zinc-800 text-zinc-300">
@@ -184,6 +200,25 @@ export const DashboardHub: React.FC<Props> = ({ onSelectModule }) => {
           </motion.div>
         </div>
       </main>
+
+      {/* Developer Copyright Footer */}
+      <footer className="py-4 border-t border-white/[0.06] text-center text-xs text-zinc-500 flex flex-col sm:flex-row items-center justify-center gap-2 px-6">
+        <span>© 2026 AppToDo</span>
+        <span className="hidden sm:inline">•</span>
+        <span>
+          Desarrollado por <strong className="text-zinc-300">Happy</strong>
+        </span>
+        <span className="hidden sm:inline">•</span>
+        <a
+          href="https://github.com/AndreeHappy/AppToDo"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-indigo-400 hover:text-indigo-300 hover:underline inline-flex items-center gap-1 font-medium transition-colors"
+        >
+          <GithubLogo size={13} weight="bold" />
+          <span>github.com/AndreeHappy/AppToDo</span>
+        </a>
+      </footer>
     </div>
   );
 };

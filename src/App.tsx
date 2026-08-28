@@ -17,6 +17,7 @@ import {
   CircleNotch,
   Sun,
   Moon,
+  GithubLogo,
 } from '@phosphor-icons/react';
 
 const MODULE_SESSION_KEY = 'app_portal_active_module';
@@ -60,7 +61,7 @@ const MainPortal: React.FC = () => {
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#090a0f] text-zinc-100 flex flex-col antialiased">
+    <div className="min-h-[100dvh] bg-[#090a0f] text-zinc-100 flex flex-col justify-between antialiased transition-colors">
       {/* Top Navigation Bar */}
       <nav className="bg-[#11131a] border-b border-white/[0.08] px-4 sm:px-6 py-3 flex items-center justify-between z-30 select-none">
         <div className="flex items-center gap-3">
@@ -89,7 +90,7 @@ const MainPortal: React.FC = () => {
           </div>
         </div>
 
-        {/* Quick Module Switcher, Theme Toggle & User */}
+        {/* Quick Module Switcher, GitHub, Theme Toggle & User */}
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setActiveModule(activeModule === 'todo' ? 'finance' : 'todo')}
@@ -97,6 +98,17 @@ const MainPortal: React.FC = () => {
           >
             <span>Cambiar a {activeModule === 'todo' ? 'Finanzas' : 'To-Do'}</span>
           </button>
+
+          {/* GitHub Button */}
+          <a
+            href="https://github.com/AndreeHappy/AppToDo"
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Ver repositorio en GitHub"
+            className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-white transition-colors"
+          >
+            <GithubLogo size={15} />
+          </a>
 
           {/* Theme Toggle Button */}
           <button
@@ -130,6 +142,20 @@ const MainPortal: React.FC = () => {
           <FinanceDashboard onBackToHub={() => setActiveModule('hub')} />
         )}
       </div>
+
+      {/* Global Footer */}
+      <footer className="py-2.5 px-4 bg-[#11131a] border-t border-white/[0.06] text-center text-[11px] text-zinc-500 flex items-center justify-between">
+        <span>AppToDo • Desarrollado por <strong>Happy</strong></span>
+        <a
+          href="https://github.com/AndreeHappy/AppToDo"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-indigo-400 hover:underline flex items-center gap-1"
+        >
+          <GithubLogo size={12} />
+          <span>GitHub</span>
+        </a>
+      </footer>
     </div>
   );
 };
