@@ -8,7 +8,7 @@ interface Props {
 export const StatusBadge: React.FC<Props> = ({ isMockMode, className = '' }) => {
   return (
     <div
-      className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-zinc-900/80 border border-white/[0.08] backdrop-blur-md text-zinc-300 shadow-sm ${className}`}
+      className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-zinc-900/60 border border-white/[0.08] backdrop-blur-md text-zinc-300 shadow-xs ${className}`}
     >
       <span className="relative flex h-2 w-2">
         <span
@@ -22,8 +22,8 @@ export const StatusBadge: React.FC<Props> = ({ isMockMode, className = '' }) => 
           }`}
         />
       </span>
-      <span className="text-[11px] tracking-wide text-zinc-300">
-        {isMockMode ? 'Modo Local / Demo' : 'Conectado a Supabase Cloud'}
+      <span className="text-[11px] font-medium tracking-wide text-zinc-300">
+        {isMockMode ? 'Modo Local' : 'En Línea / Sincronizado'}
       </span>
     </div>
   );

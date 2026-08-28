@@ -2,6 +2,7 @@
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { FinanceProvider } from './context/FinanceContext';
 import { TodoProvider } from './context/TodoContext';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { AuthView } from './components/auth/AuthView';
 import { DashboardHub } from './components/dashboard/DashboardHub';
 import { ToDoModule } from './components/todo/ToDoModule';
@@ -14,11 +15,32 @@ import {
   SignOut,
   User,
   CircleNotch,
+  Sun,
+  Moon,
 } from '@phosphor-icons/react';
+
+const MODULE_SESSION_KEY = 'app_portal_active_module';
 
 const MainPortal: React.FC = () => {
   const { user, profile, loading, logout } = useAuth();
-  const [activeModule, setActiveModule] = useState<ActiveModule>('hub');
+  const { theme, toggleTheme } = useTheme();
+
+  // Remember active module on page refresh, but start at hub on fresh login
+  const [activeModule, setActiveModuleState] = useState<ActiveModule>(() => {
+    const saved = sessionStorage.getItem(MODULE_SESSION_KEY);
+    return (saved === 'todo' || saved === 'finance') ? (saved as ActiveModule) : 'hub';
+  });
+
+  const setActiveModule = (mod: ActiveModule) => {
+    setActiveModuleState(mod);
+    sessionStorage.setItem(MODULE_SESSION_KEY, mod);
+  };
+
+  const handleLogout = async () => {
+    sessionStorage.removeItem(MODULE_SESSION_KEY);
+    setActiveModuleState('hub');
+    await logout();
+  };
 
   if (loading) {
     return (
@@ -39,7 +61,7 @@ const MainPortal: React.FC = () => {
 
   return (
     <div className="min-h-[100dvh] bg-[#090a0f] text-zinc-100 flex flex-col antialiased">
-      {/* Top Portal Navigation */}
+      {/* Top Navigation Bar */}
       <nav className="bg-[#11131a] border-b border-white/[0.08] px-4 sm:px-6 py-3 flex items-center justify-between z-30 select-none">
         <div className="flex items-center gap-3">
           <button
@@ -67,7 +89,7 @@ const MainPortal: React.FC = () => {
           </div>
         </div>
 
-        {/* Quick Module Switcher & User */}
+        {/* Quick Module Switcher, Theme Toggle & User */}
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setActiveModule(activeModule === 'todo' ? 'finance' : 'todo')}
@@ -76,13 +98,22 @@ const MainPortal: React.FC = () => {
             <span>Cambiar a {activeModule === 'todo' ? 'Finanzas' : 'To-Do'}</span>
           </button>
 
+          {/* Theme Toggle Button */}
+          <button
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Cambiar a Tema Claro' : 'Cambiar a Tema Oscuro'}
+            className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-amber-300 transition-colors"
+          >
+            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+          </button>
+
           <div className="flex items-center gap-2 pl-2 border-l border-zinc-800 text-xs text-zinc-400">
             <User size={14} />
             <span className="hidden md:inline font-mono">{profile?.full_name || user.email}</span>
           </div>
 
           <button
-            onClick={logout}
+            onClick={handleLogout}
             title="Cerrar sesión"
             className="p-1.5 rounded-lg text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
           >
@@ -105,13 +136,15 @@ const MainPortal: React.FC = () => {
 
 export const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <FinanceProvider>
-        <TodoProvider>
-          <MainPortal />
-        </TodoProvider>
-      </FinanceProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <FinanceProvider>
+          <TodoProvider>
+            <MainPortal />
+          </TodoProvider>
+        </FinanceProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 };
 

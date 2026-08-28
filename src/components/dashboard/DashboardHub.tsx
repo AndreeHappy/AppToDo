@@ -16,6 +16,8 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useFinance } from '../../context/FinanceContext';
 import { useTodo } from '../../context/TodoContext';
+import { useTheme } from '../../context/ThemeContext';
+import { Sun, Moon } from '@phosphor-icons/react';
 import { StatusBadge } from '../ui/StatusBadge';
 import type { ActiveModule } from '../../types';
 
@@ -27,6 +29,7 @@ export const DashboardHub: React.FC<Props> = ({ onSelectModule }) => {
   const { user, profile, logout, isMockMode } = useAuth();
   const { summary, baseReserve } = useFinance();
   const { todayPendingCount } = useTodo();
+  const { theme, toggleTheme } = useTheme();
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Usuario';
 
@@ -50,6 +53,14 @@ export const DashboardHub: React.FC<Props> = ({ onSelectModule }) => {
 
         <div className="flex items-center gap-3">
           <StatusBadge isMockMode={isMockMode} className="hidden sm:inline-flex" />
+
+          <button
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Cambiar a Tema Claro' : 'Cambiar a Tema Oscuro'}
+            className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-amber-300 transition-colors"
+          >
+            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+          </button>
 
           <button
             onClick={logout}

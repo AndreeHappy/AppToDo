@@ -70,17 +70,23 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           .from('transactions')
           .select('*')
           .eq('user_id', user.id)
-          .order('date', { ascending: false });
+          .order('created_at', { ascending: false });
 
         if (txData) {
-          setTransactions(txData as Transaction[]);
+          // Sort strictly newest to oldest
+          const sorted = (txData as Transaction[]).sort((a, b) => {
+            const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+            const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+            return timeB - timeA;
+          });
+          setTransactions(sorted);
         }
 
         const { data: emData } = await supabase
           .from('emergency_withdrawals')
           .select('*')
           .eq('user_id', user.id)
-          .order('date', { ascending: false });
+          .order('created_at', { ascending: false });
 
         if (emData) {
           setEmergencyLogs(emData as EmergencyWithdrawal[]);
@@ -156,6 +162,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     notes?: string;
     date: string;
   }) => {
+    const nowIso = new Date().toISOString();
     const newTx: Transaction = {
       id: 'tx_' + Date.now(),
       user_id: user?.id || 'usr_local',
@@ -166,9 +173,10 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       counterparty_concept: data.counterpartyConcept,
       notes: data.notes,
       date: data.date,
-      created_at: new Date().toISOString(),
+      created_at: nowIso,
     };
 
+    // Always put newest transaction at index 0 (top)
     setTransactions((prev) => [newTx, ...prev]);
 
     if (isSupabaseConfigured && supabase && user) {
@@ -183,6 +191,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
             counterparty_concept: data.counterpartyConcept,
             notes: data.notes,
             date: data.date,
+            created_at: nowIso,
           },
         ]);
       } catch (err) {
@@ -204,6 +213,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     },
     urgencyReason: string
   ) => {
+    const nowIso = new Date().toISOString();
     const newTx: Transaction = {
       id: 'tx_' + Date.now(),
       user_id: user?.id || 'usr_local',
@@ -214,7 +224,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       counterparty_concept: data.counterpartyConcept,
       notes: data.notes,
       date: data.date,
-      created_at: new Date().toISOString(),
+      created_at: nowIso,
     };
 
     const prevReserve = summary.protectedReserve;
@@ -229,7 +239,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       previous_reserve: prevReserve,
       new_reserve: newReserve,
       date: data.date,
-      created_at: new Date().toISOString(),
+      created_at: nowIso,
     };
 
     setTransactions((prev) => [newTx, ...prev]);
@@ -249,6 +259,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
               counterparty_concept: data.counterpartyConcept,
               notes: data.notes,
               date: data.date,
+              created_at: nowIso,
             },
           ])
           .select()
@@ -263,6 +274,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
             previous_reserve: prevReserve,
             new_reserve: newReserve,
             date: data.date,
+            created_at: nowIso,
           },
         ]);
       } catch (err) {

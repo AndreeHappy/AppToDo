@@ -8,25 +8,41 @@
   code, pre, .font-mono {
     font-family: 'JetBrains Mono', monospace;
   }
+
+  html.light {
+    color-scheme: light;
+    background-color: #f4f4f7;
+    color: #18181b;
+  }
+
+  html.dark {
+    color-scheme: dark;
+    background-color: #090a0f;
+    color: #fafafa;
+  }
 }
 
-/* Custom scrollbars */
+/* Custom smooth scrollbars */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f1117;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #24283b;
+  background: rgba(255, 255, 255, 0.12);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #363c54;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
 }
 
 /* Subtle glass effect with 1px inner refraction border */
