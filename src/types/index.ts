@@ -1,6 +1,6 @@
 ﻿export type Priority = 'high' | 'medium' | 'low';
 export type FundType = 'physical' | 'digital';
-export type TransactionType = 'income' | 'expense';
+export type TransactionType = 'income' | 'expense' | 'pending_expense';
 export type ActiveModule = 'hub' | 'todo' | 'finance';
 
 export interface UserProfile {
@@ -8,7 +8,7 @@ export interface UserProfile {
   email: string;
   full_name: string;
   avatar_url?: string;
-  protected_reserve_base: number; // default $950.00
+  protected_reserve_base: number; // default S/. 950.00
   created_at: string;
 }
 
@@ -59,9 +59,11 @@ export interface Transaction {
   fund_type: FundType;
   amount: number;
   category: string;
-  counterparty_concept: string; // "De qué o de quién" (income) / "Para qué o a quién" (expense)
+  counterparty_concept: string; // "Detalle / Concepto"
   notes?: string;
   date: string; // "YYYY-MM-DD"
+  scheduled_datetime?: string; // "YYYY-MM-DDTHH:mm" for pending expenses
+  status?: 'pending' | 'completed' | 'cancelled';
   created_at: string;
 }
 
@@ -83,6 +85,9 @@ export interface FinanceSummary {
   digitalBalance: number;
   protectedReserve: number;
   freeSpendingBalance: number;
+  pendingExpenseTotal: number;
+  effectiveFreeBalance: number;
+  pendingExpensesCount: number;
   totalIncome: number;
   totalExpense: number;
   emergencyCount: number;

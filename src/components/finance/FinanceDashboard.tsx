@@ -26,11 +26,14 @@ export const FinanceDashboard: React.FC<Props> = () => {
   const { updateProtectedReserve } = useAuth();
   const {
     transactions,
+    pendingExpenses,
     emergencyLogs,
     summary,
     baseReserve,
     addTransaction,
     confirmEmergencyWithdrawal,
+    executePendingNow,
+    cancelPending,
     deleteTransaction,
   } = useFinance();
 
@@ -47,6 +50,7 @@ export const FinanceDashboard: React.FC<Props> = () => {
     counterpartyConcept: string;
     notes?: string;
     date: string;
+    scheduledDatetime?: string;
     reserveImpact: number;
   } | null>(null);
 
@@ -58,6 +62,7 @@ export const FinanceDashboard: React.FC<Props> = () => {
     counterpartyConcept: string;
     notes?: string;
     date: string;
+    scheduledDatetime?: string;
     reserveImpact: number;
   }) => {
     setPendingEmergencyData(data);
@@ -135,10 +140,13 @@ export const FinanceDashboard: React.FC<Props> = () => {
         onOpenReserveSettings={() => setIsReserveModalOpen(true)}
       />
 
-      {/* Transaction Ledger */}
+      {/* Transaction Ledger & Pending Expenses */}
       <TransactionHistory
         transactions={transactions}
+        pendingExpenses={pendingExpenses}
         onDeleteTransaction={handleDelete}
+        onExecutePendingNow={executePendingNow}
+        onCancelPending={cancelPending}
       />
 
       {/* Modals */}

@@ -10,6 +10,7 @@ import {
   ChatCircleText,
   User,
   WarningCircle,
+  ClockCountdown,
 } from '@phosphor-icons/react';
 import type { TransactionType, FundType } from '../../types';
 import { getTodayString } from '../../utils/date';
@@ -27,6 +28,7 @@ interface Props {
     counterpartyConcept: string;
     notes?: string;
     date: string;
+    scheduledDatetime?: string;
     urgencyReason?: string;
   }) => void;
   onRequestEmergencyApproval: (data: {
@@ -38,6 +40,7 @@ interface Props {
     notes?: string;
     date: string;
     reserveImpact: number;
+    scheduledDatetime?: string;
   }) => void;
 }
 
@@ -55,7 +58,19 @@ export const TransactionFormModal: React.FC<Props> = ({
   const [counterpartyConcept, setCounterpartyConcept] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
   const [date, setDate] = useState<string>(getTodayString());
+  const [scheduledDatetime, setScheduledDatetime] = useState<string>('');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Default future time (now + 1 hour)
+  const getMinDatetime = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -63,6 +78,7 @@ export const TransactionFormModal: React.FC<Props> = ({
       setCounterpartyConcept('');
       setNotes('');
       setDate(getTodayString());
+      setScheduledDatetime(getMinDatetime());
       setErrorMsg(null);
       setCategory(type === 'income' ? INCOME_CATEGORIES[0] : EXPENSE_CATEGORIES[0]);
     }
@@ -86,15 +102,27 @@ export const TransactionFormModal: React.FC<Props> = ({
 
     const cleanConcept = counterpartyConcept.trim();
     if (!cleanConcept) {
-      setErrorMsg(
-        type === 'income'
-          ? 'Por favor ingresa el detalle o concepto del ingreso.'
-          : 'Por favor ingresa el detalle o concepto del egreso.'
-      );
+      setErrorMsg('Por favor ingresa el detalle o concepto del movimiento.');
       return;
     }
 
-    // Check emergency reserve impact for expenses
+    // Validation for Pending Expense
+    if (type === 'pending_expense') {
+      if (!scheduledDatetime) {
+        setErrorMsg('Por favor selecciona la fecha y hora futura en la que se consumirá el gasto.');
+        return;
+      }
+
+      const scheduledTime = new Date(scheduledDatetime).getTime();
+      const currentTime = new Date().getTime();
+
+      if (scheduledTime <= currentTime - 60000) {
+        setErrorMsg('La fecha y hora del gasto pendiente debe ser posterior a la hora actual.');
+        return;
+      }
+    }
+
+    // Check emergency reserve impact for immediate expenses
     if (type === 'expense' && numAmount > freeSpendingBalance) {
       const reserveImpact = numAmount - Math.max(0, freeSpendingBalance);
       onRequestEmergencyApproval({
@@ -105,6 +133,7 @@ export const TransactionFormModal: React.FC<Props> = ({
         counterpartyConcept: cleanConcept,
         notes: notes.trim() || undefined,
         date,
+        scheduledDatetime: undefined,
         reserveImpact,
       });
       return;
@@ -117,7 +146,8 @@ export const TransactionFormModal: React.FC<Props> = ({
       category,
       counterpartyConcept: cleanConcept,
       notes: notes.trim() || undefined,
-      date,
+      date: type === 'pending_expense' ? scheduledDatetime.split('T')[0] : date,
+      scheduledDatetime: undefined,
     });
     onClose();
   };
@@ -133,7 +163,7 @@ export const TransactionFormModal: React.FC<Props> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/80 backdrop-blur-xs"
           />
 
           <motion.div
@@ -159,42 +189,60 @@ export const TransactionFormModal: React.FC<Props> = ({
               </button>
             </div>
 
-            {/* Type Selector (Ingreso vs Egreso) */}
-            <div className="grid grid-cols-2 p-1 rounded-xl bg-zinc-900 border border-zinc-800 relative">
+            {/* 3-Type Selector (Ingreso vs Egreso vs Pendiente) */}
+            <div className="grid grid-cols-3 p-1 rounded-xl bg-zinc-900 border border-zinc-800 relative">
               <button
                 type="button"
                 onClick={() => handleTypeChange('income')}
-                className={`relative py-2 text-xs font-bold transition-colors z-10 flex items-center justify-center gap-1.5 ${
+                className={`relative py-2 text-[11px] font-bold transition-colors z-10 flex items-center justify-center gap-1 ${
                   type === 'income' ? 'text-emerald-300' : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
                 {type === 'income' && (
                   <motion.div
                     layoutId="tx-type-pill"
-                    className="absolute inset-0 bg-emerald-500/15 border border-emerald-500/40 rounded-lg shadow-sm"
+                    className="absolute inset-0 bg-emerald-500/15 border border-emerald-500/40 rounded-lg shadow-xs"
                     transition={{ type: 'spring', stiffness: 350, damping: 28 }}
                   />
                 )}
-                <Plus size={14} weight="bold" />
-                <span>Ingreso (+)</span>
+                <Plus size={13} weight="bold" />
+                <span>Ingreso</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleTypeChange('expense')}
-                className={`relative py-2 text-xs font-bold transition-colors z-10 flex items-center justify-center gap-1.5 ${
+                className={`relative py-2 text-[11px] font-bold transition-colors z-10 flex items-center justify-center gap-1 ${
                   type === 'expense' ? 'text-rose-300' : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
                 {type === 'expense' && (
                   <motion.div
                     layoutId="tx-type-pill"
-                    className="absolute inset-0 bg-rose-500/15 border border-rose-500/40 rounded-lg shadow-sm"
+                    className="absolute inset-0 bg-rose-500/15 border border-rose-500/40 rounded-lg shadow-xs"
                     transition={{ type: 'spring', stiffness: 350, damping: 28 }}
                   />
                 )}
-                <Minus size={14} weight="bold" />
-                <span>Egreso / Gasto (-)</span>
+                <Minus size={13} weight="bold" />
+                <span>Egreso</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleTypeChange('pending_expense')}
+                className={`relative py-2 text-[11px] font-bold transition-colors z-10 flex items-center justify-center gap-1 ${
+                  type === 'pending_expense' ? 'text-amber-300' : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                {type === 'pending_expense' && (
+                  <motion.div
+                    layoutId="tx-type-pill"
+                    className="absolute inset-0 bg-amber-500/15 border border-amber-500/40 rounded-lg shadow-xs"
+                    transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+                  />
+                )}
+                <ClockCountdown size={13} weight="bold" />
+                <span>Pendiente</span>
               </button>
             </div>
 
@@ -234,7 +282,7 @@ export const TransactionFormModal: React.FC<Props> = ({
                 </div>
               </div>
 
-              {/* Amount & Date row */}
+              {/* Amount & Date / DateTime row */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
@@ -257,17 +305,38 @@ export const TransactionFormModal: React.FC<Props> = ({
 
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                    Fecha
+                    {type === 'pending_expense' ? 'Fecha y Hora Futura' : 'Fecha'}
                   </label>
-                  <input
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    required
-                    className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-indigo-500 text-xs text-white outline-none [color-scheme:dark]"
-                  />
+                  {type === 'pending_expense' ? (
+                    <input
+                      type="datetime-local"
+                      value={scheduledDatetime}
+                      min={getMinDatetime()}
+                      onChange={(e) => setScheduledDatetime(e.target.value)}
+                      required
+                      className="w-full px-2.5 py-2 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-amber-500 text-[11px] font-mono text-white outline-none [color-scheme:dark]"
+                    />
+                  ) : (
+                    <input
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      required
+                      className="w-full px-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-indigo-500 text-xs text-white outline-none [color-scheme:dark]"
+                    />
+                  )}
                 </div>
               </div>
+
+              {/* Pending Expense Alert / Notice */}
+              {type === 'pending_expense' && (
+                <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 text-amber-300 text-xs flex items-center gap-2">
+                  <ClockCountdown size={16} weight="bold" className="shrink-0 text-amber-400" />
+                  <span className="text-[11px] leading-tight">
+                    Este gasto se consumirá automáticamente cuando llegue la fecha y hora seleccionada.
+                  </span>
+                </div>
+              )}
 
               {/* Detalle / Concepto */}
               <div className="flex flex-col gap-1.5">
@@ -279,13 +348,19 @@ export const TransactionFormModal: React.FC<Props> = ({
                   type="text"
                   value={counterpartyConcept}
                   onChange={(e) => setCounterpartyConcept(e.target.value)}
-                  placeholder={type === 'income' ? 'Ej: Salario mensual / Venta / Bono' : 'Ej: Pasaje a Ilo / Almuerzo / Supermercado'}
+                  placeholder={
+                    type === 'income'
+                      ? 'Ej: Salario mensual / Venta / Bono'
+                      : type === 'pending_expense'
+                      ? 'Ej: Pago de cuota / Alquiler de fin de mes / Cena'
+                      : 'Ej: Pasaje a Ilo / Almuerzo / Supermercado'
+                  }
                   required
                   className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-indigo-500 text-xs sm:text-sm text-white placeholder-zinc-500 outline-none"
                 />
               </div>
 
-              {/* Category (Clean Obsidian Dropdown) */}
+              {/* Category */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1">
                   <Tag size={13} />
@@ -347,10 +422,16 @@ export const TransactionFormModal: React.FC<Props> = ({
                   className={`px-4 py-2 rounded-xl text-xs font-bold shadow-md transition-all active:scale-[0.98] ${
                     type === 'income'
                       ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                      : type === 'pending_expense'
+                      ? 'bg-amber-600 hover:bg-amber-500 text-white'
                       : 'bg-rose-600 hover:bg-rose-500 text-white'
                   }`}
                 >
-                  {type === 'income' ? 'Registrar Ingreso' : 'Registrar Egreso'}
+                  {type === 'income'
+                    ? 'Registrar Ingreso'
+                    : type === 'pending_expense'
+                    ? 'Programar Gasto Pendiente'
+                    : 'Registrar Egreso'}
                 </button>
               </div>
             </form>

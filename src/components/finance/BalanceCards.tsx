@@ -8,6 +8,7 @@ import {
   DeviceMobile,
   Money,
   PencilSimple,
+  ClockCountdown,
 } from '@phosphor-icons/react';
 import type { FinanceSummary } from '../../types';
 
@@ -27,12 +28,12 @@ export const BalanceCards: React.FC<Props> = ({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-      {/* CARD 1: SALDO TOTAL */}
+      {/* CARD 1: SALDO TOTAL NETO */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-        className="p-6 rounded-3xl bg-[#12141e] border border-white/[0.08] flex flex-col justify-between shadow-lg"
+        className="p-6 rounded-3xl bg-[#11131a] border border-white/[0.08] flex flex-col justify-between shadow-lg"
       >
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
@@ -128,7 +129,7 @@ export const BalanceCards: React.FC<Props> = ({
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.1 }}
-        className="p-6 rounded-3xl bg-[#12141e] border border-white/[0.08] flex flex-col justify-between shadow-lg"
+        className="p-6 rounded-3xl bg-[#11131a] border border-white/[0.08] flex flex-col justify-between shadow-lg"
       >
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
@@ -139,14 +140,28 @@ export const BalanceCards: React.FC<Props> = ({
           </div>
         </div>
 
-        <div className="my-3">
+        <div className="my-2">
           <div className="text-3xl font-black text-emerald-400 font-mono tracking-tight">
             S/. {summary.freeSpendingBalance.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
+
+          {/* Subtitle if there are pending expenses scheduled */}
+          {summary.pendingExpenseTotal > 0 ? (
+            <div className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-lg">
+              <ClockCountdown size={13} weight="bold" />
+              <span>
+                Se gastarán S/. {summary.pendingExpenseTotal.toFixed(2)} en pendientes (Quedará S/. {summary.effectiveFreeBalance.toFixed(2)})
+              </span>
+            </div>
+          ) : (
+            <span className="text-[11px] text-zinc-500">
+              Dinero disponible sin afectar tu ahorro
+            </span>
+          )}
         </div>
 
         <div className="pt-3 border-t border-white/[0.06] flex items-center justify-between text-xs text-zinc-400">
-          <span>Dinero disponible sin tocar ahorro</span>
+          <span>Base protegida: S/. {baseReserve.toLocaleString('es-PE')}</span>
           <span className="font-mono text-zinc-300">Total - S/. {baseReserve.toLocaleString('es-PE')}</span>
         </div>
       </motion.div>

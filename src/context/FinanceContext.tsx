@@ -8,9 +8,11 @@ import type {
 } from '../types';
 import { useAuth } from './AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { getTodayString } from '../utils/date';
 
 interface FinanceContextType {
   transactions: Transaction[];
+  pendingExpenses: Transaction[];
   emergencyLogs: EmergencyWithdrawal[];
   summary: FinanceSummary;
   baseReserve: number;
@@ -23,6 +25,7 @@ interface FinanceContextType {
     counterpartyConcept: string;
     notes?: string;
     date: string;
+    scheduledDatetime?: string;
   }) => Promise<void>;
   confirmEmergencyWithdrawal: (
     data: {
@@ -34,29 +37,32 @@ interface FinanceContextType {
       notes?: string;
       date: string;
       reserveImpact: number;
+      scheduledDatetime?: string;
     },
     urgencyReason: string
   ) => Promise<void>;
+  executePendingNow: (id: string) => Promise<void>;
+  cancelPending: (id: string) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
   refreshFinanceData: () => Promise<void>;
 }
 
 const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
 
-const LOCAL_STORAGE_TX_KEY = 'app_finance_transactions_v2';
-const LOCAL_STORAGE_EMERGENCY_KEY = 'app_finance_emergency_v2';
+const LOCAL_STORAGE_TX_KEY = 'app_finance_transactions_v3';
+const LOCAL_STORAGE_EMERGENCY_KEY = 'app_finance_emergency_v3';
 
 export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, profile } = useAuth();
   const baseReserve = profile?.protected_reserve_base ?? 950.00;
 
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
-    const saved = localStorage.getItem(LOCAL_STORAGE_TX_KEY);
+    const saved = localStorage.getItem(LOCAL_STORAGE_TX_KEY) || localStorage.getItem('app_finance_transactions_v2');
     return saved ? JSON.parse(saved) : [];
   });
 
   const [emergencyLogs, setEmergencyLogs] = useState<EmergencyWithdrawal[]>(() => {
-    const saved = localStorage.getItem(LOCAL_STORAGE_EMERGENCY_KEY);
+    const saved = localStorage.getItem(LOCAL_STORAGE_EMERGENCY_KEY) || localStorage.getItem('app_finance_emergency_v2');
     return saved ? JSON.parse(saved) : [];
   });
 
@@ -73,7 +79,6 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           .order('created_at', { ascending: false });
 
         if (txData) {
-          // Sort strictly newest to oldest
           const sorted = (txData as Transaction[]).sort((a, b) => {
             const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
             const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
@@ -105,6 +110,52 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [user]);
 
+  // Routine: Auto-execute pending expenses whose scheduled date/time has arrived
+  useEffect(() => {
+    const checkScheduledExpenses = async () => {
+      const now = new Date();
+      let hasUpdates = false;
+
+      const updated = await Promise.all(
+        transactions.map(async (tx) => {
+          if (tx.type === 'pending_expense' && tx.scheduled_datetime) {
+            const sched = new Date(tx.scheduled_datetime);
+            if (sched <= now) {
+              hasUpdates = true;
+              const completedTx: Transaction = {
+                ...tx,
+                type: 'expense',
+                date: getTodayString(),
+                status: 'completed',
+              };
+
+              if (isSupabaseConfigured && supabase && user) {
+                try {
+                  await supabase
+                    .from('transactions')
+                    .update({ type: 'expense', date: getTodayString() })
+                    .eq('id', tx.id);
+                } catch (e) {
+                  console.error('Error updating scheduled expense in Supabase:', e);
+                }
+              }
+              return completedTx;
+            }
+          }
+          return tx;
+        })
+      );
+
+      if (hasUpdates) {
+        setTransactions(updated);
+      }
+    };
+
+    checkScheduledExpenses();
+    const interval = setInterval(checkScheduledExpenses, 15000); // Check every 15 seconds
+    return () => clearInterval(interval);
+  }, [transactions, user]);
+
   // Persist locally
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_TX_KEY, JSON.stringify(transactions));
@@ -114,21 +165,33 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     localStorage.setItem(LOCAL_STORAGE_EMERGENCY_KEY, JSON.stringify(emergencyLogs));
   }, [emergencyLogs]);
 
+  // Separate active pending expenses from executed movements
+  const pendingExpenses = useMemo(() => {
+    return transactions.filter((t) => t.type === 'pending_expense');
+  }, [transactions]);
+
+  const executedTransactions = useMemo(() => {
+    return transactions.filter((t) => t.type !== 'pending_expense');
+  }, [transactions]);
+
   // Financial summary calculations
   const summary: FinanceSummary = useMemo(() => {
     let incPhysical = 0;
     let incDigital = 0;
     let expPhysical = 0;
     let expDigital = 0;
+    let pendingExpenseTotal = 0;
 
     transactions.forEach((tx) => {
       const amt = Number(tx.amount) || 0;
       if (tx.type === 'income') {
         if (tx.fund_type === 'physical') incPhysical += amt;
         else incDigital += amt;
-      } else {
+      } else if (tx.type === 'expense') {
         if (tx.fund_type === 'physical') expPhysical += amt;
         else expDigital += amt;
+      } else if (tx.type === 'pending_expense') {
+        pendingExpenseTotal += amt;
       }
     });
 
@@ -140,6 +203,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     const protectedReserve = Math.max(0, Math.min(totalBalance, baseReserve));
     const freeSpendingBalance = Math.max(0, totalBalance - baseReserve);
+    const effectiveFreeBalance = Math.max(0, freeSpendingBalance - pendingExpenseTotal);
 
     return {
       totalBalance,
@@ -147,11 +211,14 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       digitalBalance,
       protectedReserve,
       freeSpendingBalance,
+      pendingExpenseTotal,
+      effectiveFreeBalance,
+      pendingExpensesCount: pendingExpenses.length,
       totalIncome,
       totalExpense,
       emergencyCount: emergencyLogs.length,
     };
-  }, [transactions, emergencyLogs, baseReserve]);
+  }, [transactions, emergencyLogs, baseReserve, pendingExpenses]);
 
   const addTransaction = async (data: {
     type: TransactionType;
@@ -161,6 +228,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     counterpartyConcept: string;
     notes?: string;
     date: string;
+    scheduledDatetime?: string;
   }) => {
     const nowIso = new Date().toISOString();
     const newTx: Transaction = {
@@ -173,10 +241,11 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       counterparty_concept: data.counterpartyConcept,
       notes: data.notes,
       date: data.date,
+      scheduled_datetime: data.scheduledDatetime,
+      status: data.type === 'pending_expense' ? 'pending' : 'completed',
       created_at: nowIso,
     };
 
-    // Always put newest transaction at index 0 (top)
     setTransactions((prev) => [newTx, ...prev]);
 
     if (isSupabaseConfigured && supabase && user) {
@@ -210,6 +279,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       notes?: string;
       date: string;
       reserveImpact: number;
+      scheduledDatetime?: string;
     },
     urgencyReason: string
   ) => {
@@ -224,6 +294,8 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       counterparty_concept: data.counterpartyConcept,
       notes: data.notes,
       date: data.date,
+      scheduled_datetime: data.scheduledDatetime,
+      status: data.type === 'pending_expense' ? 'pending' : 'completed',
       created_at: nowIso,
     };
 
@@ -283,6 +355,39 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  const executePendingNow = async (id: string) => {
+    const todayStr = getTodayString();
+    setTransactions((prev) =>
+      prev.map((t) =>
+        t.id === id
+          ? { ...t, type: 'expense', date: todayStr, status: 'completed' }
+          : t
+      )
+    );
+
+    if (isSupabaseConfigured && supabase && user) {
+      try {
+        await supabase
+          .from('transactions')
+          .update({ type: 'expense', date: todayStr })
+          .eq('id', id);
+      } catch (e) {
+        console.error('Error executing pending expense in Supabase:', e);
+      }
+    }
+  };
+
+  const cancelPending = async (id: string) => {
+    setTransactions((prev) => prev.filter((t) => t.id !== id));
+    if (isSupabaseConfigured && supabase && user) {
+      try {
+        await supabase.from('transactions').delete().eq('id', id);
+      } catch (e) {
+        console.error('Error deleting pending expense in Supabase:', e);
+      }
+    }
+  };
+
   const deleteTransaction = async (id: string) => {
     setTransactions((prev) => prev.filter((t) => t.id !== id));
     if (isSupabaseConfigured && supabase && user) {
@@ -297,13 +402,16 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   return (
     <FinanceContext.Provider
       value={{
-        transactions,
+        transactions: executedTransactions,
+        pendingExpenses,
         emergencyLogs,
         summary,
         baseReserve,
         loading,
         addTransaction,
         confirmEmergencyWithdrawal,
+        executePendingNow,
+        cancelPending,
         deleteTransaction,
         refreshFinanceData: fetchFinanceData,
       }}
