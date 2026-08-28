@@ -111,13 +111,13 @@ export const TransactionHistory: React.FC<Props> = ({
 
   return (
     <div className="p-5 sm:p-6 rounded-3xl bg-[#11131a] border border-white/[0.08] flex flex-col gap-5 shadow-xl">
-      {/* Top Tabs: Historial vs Gastos Pendientes */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-white/[0.06]">
-        <div className="flex items-center gap-2 p-1 rounded-2xl bg-zinc-900/80 border border-zinc-800 self-start">
+      {/* Top Tabs: Historial vs Gastos Pendientes (Mobile Grid) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/[0.06]">
+        <div className="w-full sm:w-auto grid grid-cols-2 sm:flex items-center gap-1.5 p-1 rounded-2xl bg-zinc-900/80 border border-zinc-800">
           <button
             type="button"
             onClick={() => setActiveTab('executed')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
               activeTab === 'executed'
                 ? 'bg-indigo-600 text-white shadow-xs'
                 : 'text-zinc-400 hover:text-zinc-200'
@@ -130,16 +130,16 @@ export const TransactionHistory: React.FC<Props> = ({
           <button
             type="button"
             onClick={() => setActiveTab('pending')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
               activeTab === 'pending'
                 ? 'bg-amber-600 text-white shadow-xs'
                 : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
             <ClockCountdown size={15} weight="bold" />
-            <span>Gastos Pendientes</span>
+            <span>Pendientes</span>
             {pendingExpenses.length > 0 && (
-              <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-amber-400 text-black font-extrabold font-mono">
+              <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-amber-400 text-black font-extrabold font-mono">
                 {pendingExpenses.length}
               </span>
             )}

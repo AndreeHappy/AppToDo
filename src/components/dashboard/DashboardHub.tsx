@@ -37,24 +37,24 @@ export const DashboardHub: React.FC<Props> = ({ onSelectModule }) => {
 
   return (
     <div className="min-h-[100dvh] bg-[#090a0f] text-zinc-100 flex flex-col justify-between antialiased selection:bg-indigo-500/30 transition-colors">
-      {/* Top Hub Bar */}
-      <header className="bg-[#11131a] border-b border-white/[0.08] px-6 sm:px-8 py-3.5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
-            <ShieldCheck size={22} weight="bold" />
+      {/* Top Hub Bar (Mobile Responsive) */}
+      <header className="bg-[#11131a] border-b border-white/[0.08] px-3.5 sm:px-8 py-2.5 sm:py-3.5 flex items-center justify-between transition-colors">
+        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 shrink-0 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+            <ShieldCheck size={20} weight="bold" />
           </div>
-          <div>
-            <h1 className="text-sm font-black text-white tracking-tight leading-none">
+          <div className="min-w-0">
+            <h1 className="text-xs sm:text-sm font-black text-white tracking-tight leading-none truncate">
               Portal Multipropósito
             </h1>
-            <span className="text-[11px] text-zinc-400 font-medium">
+            <span className="text-[10px] sm:text-[11px] text-zinc-400 font-medium hidden sm:inline">
               Centro de Control Personal
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <StatusBadge isMockMode={isMockMode} className="hidden sm:inline-flex" />
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <StatusBadge isMockMode={isMockMode} className="hidden lg:inline-flex" />
 
           {/* GitHub Repository Button */}
           <a
@@ -62,10 +62,10 @@ export const DashboardHub: React.FC<Props> = ({ onSelectModule }) => {
             target="_blank"
             rel="noopener noreferrer"
             title="Ver repositorio en GitHub"
-            className="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-xs font-semibold text-zinc-300 hover:text-white flex items-center gap-1.5 transition-all active:scale-[0.98]"
+            className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-zinc-300 hover:text-white flex items-center gap-1.5 transition-all"
           >
             <GithubLogo size={15} weight="bold" />
-            <span>GitHub</span>
+            <span className="hidden sm:inline">GitHub</span>
           </a>
 
           {/* Theme Toggle Button */}
@@ -81,10 +81,10 @@ export const DashboardHub: React.FC<Props> = ({ onSelectModule }) => {
           <button
             onClick={logout}
             title="Cerrar sesión"
-            className="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-rose-500/10 text-zinc-400 hover:text-rose-400 border border-zinc-800 hover:border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors active:scale-[0.98]"
+            className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-zinc-900 hover:bg-rose-500/10 text-zinc-400 hover:text-rose-400 border border-zinc-800 text-xs font-semibold flex items-center gap-1.5 transition-colors"
           >
             <SignOut size={15} />
-            <span>Salir</span>
+            <span className="hidden sm:inline">Salir</span>
           </button>
         </div>
       </header>
