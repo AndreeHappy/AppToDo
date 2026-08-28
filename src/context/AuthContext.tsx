@@ -9,10 +9,11 @@ interface AuthContextType {
   isMockMode: boolean;
   isPasswordRecovery: boolean;
   login: (email: string, password: string) => Promise<{ error?: string }>;
-  register: (email: string, password: string, fullName: string) => Promise<{ error?: string }>;
+  register: (email: string, password: string, fullName: string) => Promise<{ error?: string; requiresEmailConfirmation?: boolean }>;
   logout: () => Promise<void>;
   resetPasswordForEmail: (email: string) => Promise<{ error?: string }>;
   updateUserPassword: (newPassword: string) => Promise<{ error?: string }>;
+  resendVerificationEmail: (email: string) => Promise<{ error?: string }>;
   updateProtectedReserve: (newBase: number) => Promise<void>;
 }
 
@@ -129,16 +130,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (email: string, password: string, fullName: string): Promise<{ error?: string }> => {
+  const register = async (
+    email: string,
+    password: string,
+    fullName: string
+  ): Promise<{ error?: string; requiresEmailConfirmation?: boolean }> => {
     if (isSupabaseConfigured && supabase) {
+      const redirectUrl = typeof window !== 'undefined' ? window.location.origin : undefined;
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
           data: { full_name: fullName },
+          emailRedirectTo: redirectUrl,
         },
       });
+
       if (error) return { error: error.message };
+
+      // If user was created but session is null, email confirmation is required by Supabase
+      if (data.user && !data.session) {
+        return { requiresEmailConfirmation: true };
+      }
+
       if (data.user) {
         setUser({ id: data.user.id, email: data.user.email || '' });
         await fetchProfile(data.user.id, data.user.email || '');
@@ -160,10 +175,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const resendVerificationEmail = async (email: string): Promise<{ error?: string }> => {
+    if (isSupabaseConfigured && supabase) {
+      const redirectUrl = typeof window !== 'undefined' ? window.location.origin : undefined;
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: {
+          emailRedirectTo: redirectUrl,
+        },
+      });
+      if (error) return { error: error.message };
+      return {};
+    }
+    return {};
+  };
+
   const resetPasswordForEmail = async (email: string): Promise<{ error?: string }> => {
     if (isSupabaseConfigured && supabase) {
+      const redirectUrl = typeof window !== 'undefined' ? window.location.origin : undefined;
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin,
+        redirectTo: redirectUrl,
       });
       if (error) return { error: error.message };
       return {};
@@ -222,6 +254,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout,
         resetPasswordForEmail,
         updateUserPassword,
+        resendVerificationEmail,
         updateProtectedReserve,
       }}
     >

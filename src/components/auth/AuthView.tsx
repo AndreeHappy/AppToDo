@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LockKey,
@@ -13,43 +13,51 @@ import {
   Key,
   PaperPlaneTilt,
   CheckCircle,
+  PaperPlaneRight,
 } from '@phosphor-icons/react';
 import { useAuth } from '../../context/AuthContext';
 
 type AuthMode = 'login' | 'register' | 'forgot_password';
 
-// Función para traducir errores técnicos de Supabase a español claro
-function translateSupabaseError(error: string): { title: string; hint?: string } {
+function translateSupabaseError(error: string): { title: string; hint?: string; isUnconfirmedEmail?: boolean } {
   const lower = error.toLowerCase();
 
   if (lower.includes('email not confirmed')) {
     return {
       title: 'Tu correo electrónico aún no ha sido confirmado.',
-      hint: 'Revisa tu bandeja de entrada o spam. Si prefieres iniciar sesión sin confirmar correos, desactiva la opción "Confirm email" en tu panel de Supabase (Authentication -> Providers -> Email).',
+      hint: 'Revisa tu bandeja de entrada (y spam) para hacer clic en el enlace de verificación.',
+      isUnconfirmedEmail: true,
     };
   }
   if (lower.includes('invalid login credentials')) {
     return {
       title: 'Correo electrónico o contraseña incorrectos.',
-      hint: 'Verifica que tus credenciales estén bien escritas o utiliza la opción "¿Olvidaste tu contraseña?".',
+      hint: 'Verifica que tus datos estén bien escritos o usa "¿Olvidaste tu contraseña?".',
     };
   }
   if (lower.includes('user already registered')) {
     return {
       title: 'Este correo ya tiene una cuenta registrada.',
-      hint: 'Selecciona la pestaña "Iniciar Sesión" para ingresar con tu contraseña.',
+      hint: 'Selecciona la pestaña "Iniciar Sesión" para ingresar.',
     };
   }
   if (lower.includes('password should be at least 6 characters')) {
     return {
       title: 'La contraseña es demasiado corta.',
-      hint: 'Debe contener al menos 6 caracteres por seguridad.',
+      hint: 'Debe tener un mínimo de 6 caracteres.',
+    };
+  }
+  if (lower.includes('otp_expired') || lower.includes('email link is invalid or has expired')) {
+    return {
+      title: 'El enlace de correo ha expirado o ya fue utilizado.',
+      hint: 'Por favor solicita un nuevo correo de acceso o confirmación.',
+      isUnconfirmedEmail: true,
     };
   }
   if (lower.includes('rate limit')) {
     return {
-      title: 'Demasiados intentos consecutivos.',
-      hint: 'Por favor espera unos segundos antes de intentar nuevamente.',
+      title: 'Demasiadas solicitudes consecutivas.',
+      hint: 'Por favor espera unos momentos antes de intentar otra vez.',
     };
   }
 
@@ -62,6 +70,7 @@ export const AuthView: React.FC = () => {
     register,
     resetPasswordForEmail,
     updateUserPassword,
+    resendVerificationEmail,
     isMockMode,
     isPasswordRecovery,
   } = useAuth();
@@ -71,9 +80,48 @@ export const AuthView: React.FC = () => {
   const [password, setPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [fullName, setFullName] = useState('');
-  const [errorDetails, setErrorDetails] = useState<{ title: string; hint?: string } | null>(null);
+  const [errorDetails, setErrorDetails] = useState<{ title: string; hint?: string; isUnconfirmedEmail?: boolean } | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isResendingEmail, setIsResendingEmail] = useState(false);
+
+  // Detect URL Hash errors from Supabase (e.g. expired OTP / invalid redirect)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      const errorDesc = params.get('error_description');
+      const errorCode = params.get('error_code');
+
+      if (errorDesc || errorCode) {
+        const errorText = decodeURIComponent(errorDesc || errorCode || '');
+        setErrorDetails(translateSupabaseError(errorText));
+        // Clear hash from URL for a clean appearance
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    }
+  }, []);
+
+  const handleResendVerification = async () => {
+    if (!email.trim()) {
+      setErrorDetails({ title: 'Ingresa tu correo en el campo inferior para reenviar el enlace.' });
+      return;
+    }
+    setIsResendingEmail(true);
+    setErrorDetails(null);
+    try {
+      const res = await resendVerificationEmail(email.trim());
+      if (res.error) {
+        setErrorDetails(translateSupabaseError(res.error));
+      } else {
+        setSuccessMsg(`¡Nuevo enlace de verificación enviado a ${email.trim()}! Revisa tu bandeja de entrada.`);
+      }
+    } catch {
+      setErrorDetails({ title: 'Error al reenviar el correo de verificación.' });
+    } finally {
+      setIsResendingEmail(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,6 +186,11 @@ export const AuthView: React.FC = () => {
         const res = await register(cleanEmail, cleanPassword, fullName.trim());
         if (res.error) {
           setErrorDetails(translateSupabaseError(res.error));
+        } else if (res.requiresEmailConfirmation) {
+          // Non-invasive notification indicating email verification was sent
+          setSuccessMsg(`¡Cuenta creada con éxito! Hemos enviado un enlace de confirmación a ${cleanEmail}. Por favor revisa tu bandeja de entrada o spam para activar tu acceso.`);
+          setMode('login');
+          setPassword('');
         }
       }
     } catch {
@@ -149,7 +202,7 @@ export const AuthView: React.FC = () => {
 
   return (
     <div className="min-h-[100dvh] bg-[#090a0f] text-zinc-100 flex items-center justify-center p-4 selection:bg-indigo-500/30">
-      {/* Background subtle glow */}
+      {/* Background glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-indigo-600/[0.05] rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 left-1/3 w-[450px] h-[450px] bg-emerald-600/[0.03] rounded-full blur-3xl" />
@@ -190,7 +243,7 @@ export const AuthView: React.FC = () => {
           </div>
         </div>
 
-        {/* Tab Switcher (Solo visible si no es modo recuperación) */}
+        {/* Tab Switcher */}
         {!isPasswordRecovery && mode !== 'forgot_password' && (
           <div className="grid grid-cols-2 p-1 rounded-xl bg-zinc-900/80 border border-zinc-800/80 relative">
             <button
@@ -243,14 +296,14 @@ export const AuthView: React.FC = () => {
           </div>
         )}
 
-        {/* Error Alert con Explicación en Español */}
+        {/* Error Alert con botón de Reenvío si aplica */}
         <AnimatePresence>
           {errorDetails && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-200 text-xs flex flex-col gap-1.5"
+              className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-200 text-xs flex flex-col gap-2"
             >
               <div className="flex items-center gap-2 text-rose-300 font-bold">
                 <WarningCircle size={16} weight="fill" className="shrink-0 text-rose-400" />
@@ -260,6 +313,20 @@ export const AuthView: React.FC = () => {
                 <p className="text-[11px] text-zinc-300 leading-relaxed pl-6">
                   {errorDetails.hint}
                 </p>
+              )}
+
+              {errorDetails.isUnconfirmedEmail && (
+                <div className="pt-2 border-t border-rose-500/20 pl-6 flex justify-start">
+                  <button
+                    type="button"
+                    onClick={handleResendVerification}
+                    disabled={isResendingEmail}
+                    className="text-xs font-semibold text-rose-300 hover:text-white underline flex items-center gap-1 disabled:opacity-50"
+                  >
+                    <PaperPlaneRight size={13} />
+                    <span>{isResendingEmail ? 'Reenviando...' : 'Reenviar correo de verificación ahora'}</span>
+                  </button>
+                </div>
               )}
             </motion.div>
           )}
@@ -272,9 +339,9 @@ export const AuthView: React.FC = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-200 text-xs flex items-center gap-2"
+              className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-200 text-xs flex items-start gap-2.5"
             >
-              <CheckCircle size={18} weight="fill" className="shrink-0 text-emerald-400" />
+              <CheckCircle size={18} weight="fill" className="shrink-0 text-emerald-400 mt-0.5" />
               <span className="leading-relaxed">{successMsg}</span>
             </motion.div>
           )}
