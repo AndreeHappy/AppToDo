@@ -1,10 +1,10 @@
-﻿# 🚀 Portal Multipropósito: To-Do Diario & Finanzas Personales
+﻿# Portal Multipropósito: To-Do Diario & Finanzas Personales
 
 Plataforma web modular de alto rendimiento construida con **React, TypeScript, Vite, Tailwind CSS, Framer Motion y Supabase**. Integra autenticación de usuarios, gestor de tareas diarias con bitácoras automáticas en Markdown y un módulo financiero con protección de fondo de reserva intocable ($950).
 
 ---
 
-## 📂 Estructura del Proyecto y Carpeta Contexto
+## Estructura del Proyecto y Carpeta Contexto
 
 ```
 D:\IDE VAULT\AppToDo\
@@ -37,11 +37,11 @@ D:\IDE VAULT\AppToDo\
 
 ---
 
-## ⚡ 1. Ejecución Local Rápida
+## 1. Ejecución Local Rápida
 
 ### Opción A: Con 1 solo clic (Recomendado en Windows)
 Haz doble clic sobre el archivo:
-👉 `INICIAR_APPTODO.bat` (Iniciará el servidor de desarrollo y abrirá automáticamente tu navegador en `http://localhost:5173`).
+`INICIAR_APPTODO.bat` (Iniciará el servidor de desarrollo y abrirá automáticamente tu navegador en `http://localhost:5173`).
 
 ### Opción B: Desde la terminal
 ```bash
@@ -54,7 +54,7 @@ npm run dev
 
 ---
 
-## 🗄️ 2. Conexión con Supabase Cloud
+## 2. Conexión con Supabase Cloud
 
 Para habilitar la persistencia multiusuario en la nube:
 
@@ -70,7 +70,7 @@ Para habilitar la persistencia multiusuario en la nube:
 
 ---
 
-## 💰 3. Lógica del Módulo de Finanzas
+## 3. Lógica del Módulo de Finanzas
 
 * **Soporte Bivalente:** Registro de dinero en **Efectivo / Físico** y **Digital / Bancario**.
 * **Fondo Protegido ($950):** El sistema mantiene bloqueados \$950 como reserva de ahorro intocable.
@@ -79,7 +79,7 @@ Para habilitar la persistencia multiusuario en la nube:
 
 ---
 
-## 📝 4. Sincronización del To-Do y Snapshots en Markdown
+## 4. Sincronización del To-Do y Snapshots en Markdown
 
 * Cada día de trabajo genera automáticamente un snapshot en Markdown estructurado (`todo_daily_logs`).
 * Las tareas pendientes del día anterior pueden transferirse con 1 clic como punto de partida para el día siguiente.
@@ -87,7 +87,7 @@ Para habilitar la persistencia multiusuario en la nube:
 
 ---
 
-## 🚢 5. Despliegue a Producción
+## 5. Despliegue a Producción
 
 ### A. Despliegue en Vercel (Recomendado)
 1. Sube tu código a un repositorio de GitHub / GitLab.
