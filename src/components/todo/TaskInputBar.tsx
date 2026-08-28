@@ -63,7 +63,7 @@ export const TaskInputBar: React.FC<Props> = ({
 
         <button
           type="button"
-          title="🔴 Urgente / Prioridad Alta"
+          title="Urgente / Prioridad Alta"
           onClick={() => setPriority('high')}
           className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
             priority === 'high'
@@ -77,7 +77,7 @@ export const TaskInputBar: React.FC<Props> = ({
 
         <button
           type="button"
-          title="🟡 Importante / Prioridad Media"
+          title="Importante / Prioridad Media"
           onClick={() => setPriority('medium')}
           className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
             priority === 'medium'
@@ -91,7 +91,7 @@ export const TaskInputBar: React.FC<Props> = ({
 
         <button
           type="button"
-          title="🟢 Rápida / Prioridad Baja"
+          title="Rápida / Prioridad Baja"
           onClick={() => setPriority('low')}
           className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all ${
             priority === 'low'

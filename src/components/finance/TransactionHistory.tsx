@@ -436,7 +436,7 @@ export const TransactionHistory: React.FC<Props> = ({
                       </div>
 
                       <div className="flex items-center gap-2 text-[11px] text-amber-400/90 font-mono mt-0.5">
-                        <span>⏳ Se consumirá: {formatScheduledDate(tx.scheduled_datetime)}</span>
+                        <span className="inline-flex items-center gap-1"><ClockCountdown size={12} weight="bold" /> Se consumirá: {formatScheduledDate(tx.scheduled_datetime)}</span>
                         <span>•</span>
                         <span>{tx.fund_type === 'digital' ? 'Digital / Bancos' : 'Efectivo'}</span>
                       </div>

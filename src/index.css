@@ -10,7 +10,7 @@
   }
 }
 
-/* THEME VARIABLES */
+/* THEME SYSTEM */
 html.dark {
   color-scheme: dark;
   --bg-main: #090a0f;
@@ -28,7 +28,7 @@ html.light {
   --bg-input: #eef2f7;
   --text-main: #0f172a;
   --text-muted: #475569;
-  --border-main: rgba(0, 0, 0, 0.1);
+  --border-main: rgba(0, 0, 0, 0.09);
 }
 
 body {
@@ -37,7 +37,7 @@ body {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* LIGHT MODE CRISP OVERRIDES */
+/* LIGHT MODE SURFACE OVERRIDES */
 html.light .bg-\[\#090a0f\],
 html.light .bg-\[\#0b0c10\],
 html.light .bg-\[\#0d0e14\],
@@ -53,45 +53,48 @@ html.light .bg-\[\#141620\],
 html.light .bg-\[\#14181a\],
 html.light .bg-\[\#181a24\] {
   background-color: #ffffff !important;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
 }
 
 html.light .bg-zinc-900,
 html.light .bg-zinc-900\/90,
 html.light .bg-zinc-900\/80,
-html.light .bg-zinc-900\/60 {
-  background-color: #eef2f7 !important;
+html.light .bg-zinc-900\/60,
+html.light .bg-zinc-900\/50,
+html.light .bg-zinc-900\/40 {
+  background-color: #f1f5f9 !important;
 }
 
 html.light .bg-zinc-800,
 html.light .bg-zinc-800\/80,
+html.light .bg-zinc-800\/60,
+html.light .bg-zinc-800\/50,
 html.light .bg-zinc-800\/40,
 html.light .bg-zinc-800\/30 {
   background-color: #e2e8f0 !important;
   color: #1e293b !important;
 }
 
-html.light .text-white,
-html.light .text-zinc-100,
-html.light .text-zinc-200 {
-  color: #0f172a !important;
-}
-
-html.light .text-zinc-300,
-html.light .text-zinc-400 {
-  color: #334155 !important;
-}
-
-html.light .text-zinc-500 {
-  color: #64748b !important;
-}
-
 html.light .border-white\/\[0\.08\],
 html.light .border-white\/\[0\.07\],
 html.light .border-white\/\[0\.06\],
+html.light .border-white\/\[0\.05\],
 html.light .border-zinc-800,
+html.light .border-zinc-800\/80,
 html.light .border-zinc-700 {
-  border-color: rgba(0, 0, 0, 0.1) !important;
+  border-color: rgba(0, 0, 0, 0.09) !important;
+}
+
+/* Ensure active colored buttons ALWAYS have crisp pure white text */
+.bg-indigo-600,
+.bg-indigo-600 *,
+.bg-emerald-600,
+.bg-emerald-600 *,
+.bg-rose-600,
+.bg-rose-600 *,
+.bg-amber-600,
+.bg-amber-600 * {
+  color: #ffffff !important;
 }
 
 /* Custom Scrollbars */

@@ -8,6 +8,7 @@ import {
   PencilSimple,
   ClockCountdown,
   LockKey,
+  ShieldCheck,
 } from '@phosphor-icons/react';
 import type { FinanceSummary } from '../../types';
 
@@ -29,7 +30,7 @@ export const BalanceCards: React.FC<Props> = ({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-      {/* TARJETA 1: SALDO TOTAL NETO Y AHORRO BASE */}
+      {/* TARJETA 1: SALDO TOTAL NETO Y MONTO AHORRADO */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -37,11 +38,9 @@ export const BalanceCards: React.FC<Props> = ({
         className="p-6 sm:p-7 rounded-3xl bg-[#11131a] border border-white/[0.08] flex flex-col justify-between shadow-xl"
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-              Saldo Total Neto
-            </span>
-          </div>
+          <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+            Saldo Total Neto
+          </span>
           <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
             <Wallet size={20} weight="bold" />
           </div>
@@ -74,29 +73,32 @@ export const BalanceCards: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Pie con Estado del Fondo de Ahorro */}
+        {/* Pie con Monto Ahorrado */}
         <div className="pt-3.5 border-t border-white/[0.06] flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 rounded-md bg-indigo-500/15 text-indigo-400 flex items-center justify-center">
               <LockKey size={12} weight="bold" />
             </div>
             <span className="text-zinc-400">
-              Fondo de Ahorro: <strong className="text-white font-mono font-bold">S/. {summary.protectedReserve.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</strong>
+              Monto Ahorrado:{' '}
+              <strong className="text-white font-mono font-bold">
+                S/. {summary.protectedReserve.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+              </strong>
             </span>
           </div>
 
           <button
             onClick={onOpenReserveSettings}
-            title="Ajustar fondo de reserva"
+            title="Ajustar monto ahorrado"
             className="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-zinc-300 hover:text-white flex items-center gap-1 transition-colors"
           >
-            <span>Base S/. {baseReserve.toLocaleString('es-PE')}</span>
+            <span>Monto Ahorrado: S/. {baseReserve.toLocaleString('es-PE')}</span>
             <PencilSimple size={12} />
           </button>
         </div>
       </motion.div>
 
-      {/* TARJETA 2: SALDO LIBRE PARA GASTOS (CON DESGLOSE FÍSICO Y DIGITAL) */}
+      {/* TARJETA 2: SALDO LIBRE PARA GASTOS (DIGITAL MENOS MONTO AHORRADO) */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -108,11 +110,9 @@ export const BalanceCards: React.FC<Props> = ({
         }`}
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
-              Saldo Libre Para Gastos
-            </span>
-          </div>
+          <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+            Saldo Libre Para Gastos
+          </span>
           <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm font-mono border ${
             isFreeZero
               ? 'bg-rose-500/10 border-rose-500/20 text-rose-400'
@@ -177,9 +177,12 @@ export const BalanceCards: React.FC<Props> = ({
 
         {/* Pie explicativo */}
         <div className="pt-3.5 border-t border-white/[0.06] flex items-center justify-between text-xs text-zinc-400">
-          <span>Dinero disponible sin afectar tu ahorro base</span>
+          <div className="flex items-center gap-1.5">
+            <ShieldCheck size={14} className={isReserveIntact ? 'text-emerald-400' : 'text-rose-400'} />
+            <span>{isReserveIntact ? 'Ahorro 100% Protegido' : 'Déficit en Ahorro'}</span>
+          </div>
           <span className="font-mono text-zinc-300">
-            {isReserveIntact ? 'Ahorro 100% Protegido' : 'Déficit en Ahorro'}
+            Digital - Monto Ahorrado
           </span>
         </div>
       </motion.div>
