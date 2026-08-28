@@ -1,0 +1,180 @@
+﻿import React from 'react';
+import { motion } from 'framer-motion';
+import {
+  ListChecks,
+  TrendUp,
+  ShieldCheck,
+  SignOut,
+  CalendarCheck,
+  LockKey,
+  Wallet,
+  ArrowRight,
+  Database,
+  Flame,
+  Lightning,
+  CheckCircle,
+} from '@phosphor-icons/react';
+import { useAuth } from '../../context/AuthContext';
+import type { ActiveModule } from '../../types';
+
+interface Props {
+  onSelectModule: (module: ActiveModule) => void;
+  todoCount: number;
+  financeBalance: number;
+}
+
+export const DashboardHub: React.FC<Props> = ({
+  onSelectModule,
+  todoCount,
+  financeBalance,
+}) => {
+  const { user, profile, logout, isMockMode } = useAuth();
+  const baseReserve = profile?.protected_reserve_base ?? 950.00;
+
+  return (
+    <div className="min-h-[100dvh] bg-[#090a0f] text-zinc-100 flex flex-col antialiased selection:bg-indigo-500/30">
+      {/* Top Hub Bar */}
+      <header className="bg-[#11131a] border-b border-white/[0.08] px-8 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+            <ShieldCheck size={22} weight="bold" />
+          </div>
+          <div>
+            <h1 className="text-sm font-black text-white tracking-tight leading-none">
+              Portal Multipropósito
+            </h1>
+            <span className="text-xs text-zinc-400 font-medium">
+              Centro de Control
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 font-mono">
+            <Database size={13} className={isMockMode ? 'text-amber-400' : 'text-emerald-400'} />
+            <span>{profile?.email || user?.email}</span>
+          </div>
+
+          <button
+            onClick={logout}
+            title="Cerrar sesión"
+            className="px-3.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-rose-500/10 text-zinc-400 hover:text-rose-400 border border-zinc-800 hover:border-rose-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors active:scale-[0.98]"
+          >
+            <SignOut size={15} />
+            <span>Salir</span>
+          </button>
+        </div>
+      </header>
+
+      {/* Main Hub Body */}
+      <main className="flex-1 max-w-6xl mx-auto w-full p-8 flex flex-col justify-center gap-8">
+        <div className="flex flex-col gap-1.5 text-left">
+          <div className="inline-flex items-center gap-2 text-xs font-bold text-indigo-400 uppercase tracking-widest">
+            <span className="w-2 h-2 rounded-full bg-indigo-400 animate-pulse" />
+            <span>Espacio de Trabajo Personal</span>
+          </div>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+            Bienvenido, {profile?.full_name || user?.email?.split('@')[0]}
+          </h2>
+          <p className="text-sm text-zinc-400 max-w-xl leading-relaxed">
+            Selecciona el módulo que deseas utilizar. Todos tus datos se guardan y sincronizan automáticamente.
+          </p>
+        </div>
+
+        {/* Modules Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* CARD 1: TO-DO MODULE */}
+          <motion.div
+            whileHover={{ y: -4, transition: { type: 'spring', stiffness: 300, damping: 20 } }}
+            onClick={() => onSelectModule('todo')}
+            className="group relative rounded-3xl bg-[#12141e] border border-white/[0.08] hover:border-indigo-500/60 p-7 shadow-xl hover:shadow-[0_20px_40px_rgba(99,102,241,0.15)] flex flex-col justify-between cursor-pointer transition-all overflow-hidden"
+          >
+            <div className="flex flex-col gap-5">
+              <div className="flex items-center justify-between">
+                <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                  <ListChecks size={26} weight="bold" />
+                </div>
+                <span className="px-3 py-1 rounded-full text-xs font-bold font-mono bg-zinc-800/80 text-zinc-300 border border-zinc-700">
+                  {todoCount} pendientes hoy
+                </span>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-bold text-white tracking-tight group-hover:text-indigo-300 transition-colors">
+                  Módulo de Tareas (To-Do)
+                </h3>
+                <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                  Organizador de tareas por agendas, fechas automáticas con historial y guardado diario de bitácoras en Markdown.
+                </p>
+              </div>
+
+              {/* Feature pills */}
+              <div className="flex flex-wrap gap-2 pt-1">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-rose-500/10 border border-rose-500/30 text-rose-300">
+                  <Flame size={12} weight="fill" /> Prioridad 3 Niveles
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-zinc-800 text-zinc-300">
+                  <CalendarCheck size={12} /> Bloqueo de Días
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-300">
+                  <CheckCircle size={12} weight="fill" /> Bitácoras Markdown
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-4 border-t border-white/[0.06] flex items-center justify-between text-xs font-bold text-indigo-400 group-hover:text-indigo-300">
+              <span>Abrir Tablero de Tareas</span>
+              <ArrowRight size={16} weight="bold" className="group-hover:translate-x-1 transition-transform" />
+            </div>
+          </motion.div>
+
+          {/* CARD 2: FINANCE MODULE */}
+          <motion.div
+            whileHover={{ y: -4, transition: { type: 'spring', stiffness: 300, damping: 20 } }}
+            onClick={() => onSelectModule('finance')}
+            className="group relative rounded-3xl bg-[#12141e] border border-white/[0.08] hover:border-emerald-500/60 p-7 shadow-xl hover:shadow-[0_20px_40px_rgba(16,185,129,0.15)] flex flex-col justify-between cursor-pointer transition-all overflow-hidden"
+          >
+            <div className="flex flex-col gap-5">
+              <div className="flex items-center justify-between">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                  <TrendUp size={26} weight="bold" />
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold font-mono bg-amber-500/15 border border-amber-500/30 text-amber-300">
+                  <LockKey size={13} weight="bold" />
+                  <span>Reserva: S/. {baseReserve.toLocaleString('es-PE')}</span>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-xl font-bold text-white tracking-tight group-hover:text-emerald-300 transition-colors">
+                  Finanzas Personales
+                </h3>
+                <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                  Gestión de flujo de caja con fondos físicos y digitales, control de saldo libre y protección de fondo de ahorro configurable.
+                </p>
+              </div>
+
+              {/* Feature pills */}
+              <div className="flex flex-wrap gap-2 pt-1">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-amber-500/10 border border-amber-500/30 text-amber-300">
+                  <LockKey size={12} weight="fill" /> Ahorro Blindado
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-zinc-800 text-zinc-300">
+                  <Wallet size={12} /> Físico y Digital
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-rose-500/10 border border-rose-500/30 text-rose-300">
+                  <Lightning size={12} weight="fill" /> Retiro de Urgencia
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-4 border-t border-white/[0.06] flex items-center justify-between text-xs font-bold text-emerald-400 group-hover:text-emerald-300">
+              <span>Gestionar Finanzas (S/. {financeBalance.toFixed(2)})</span>
+              <ArrowRight size={16} weight="bold" className="group-hover:translate-x-1 transition-transform" />
+            </div>
+          </motion.div>
+        </div>
+      </main>
+    </div>
+  );
+};
