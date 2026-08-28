@@ -26,14 +26,14 @@ export const TaskInputBar: React.FC<Props> = ({
 
   if (isLocked) {
     return (
-      <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 text-xs text-amber-200">
+      <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-3 text-xs text-amber-300">
         <div className="flex items-center gap-2">
           <span className="font-semibold">Día archivado:</span>
           <span>Esta fecha finalizó y está en modo solo lectura para proteger tu registro histórico.</span>
         </div>
         <button
           onClick={onUnlockDate}
-          className="px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-white font-medium flex items-center gap-1.5 transition-colors shrink-0"
+          className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-200 font-medium flex items-center gap-1.5 transition-colors shrink-0"
         >
           <LockKeyOpen size={14} />
           <span>Habilitar edición</span>
@@ -45,18 +45,18 @@ export const TaskInputBar: React.FC<Props> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className="p-3 rounded-2xl bg-[#12141d] border border-white/[0.08] flex items-center gap-3 flex-wrap shadow-sm"
+      className="p-3 rounded-2xl bg-[#11131a] border border-white/[0.08] flex items-center gap-3 flex-wrap shadow-sm transition-colors"
     >
       <input
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         placeholder="Escribe tu quehacer o tarea aquí..."
-        className="flex-1 min-w-[240px] px-3.5 py-2.5 rounded-xl bg-zinc-900/80 border border-zinc-800 focus:border-indigo-500/80 text-sm text-zinc-100 placeholder-zinc-500 outline-none transition-colors"
+        className="flex-1 min-w-[240px] px-3.5 py-2.5 rounded-xl bg-zinc-900/90 border border-zinc-800 focus:border-indigo-500 text-sm text-white placeholder-zinc-500 outline-none transition-colors"
       />
 
       {/* Priority Picker */}
-      <div className="flex items-center gap-1.5 p-1 rounded-xl bg-zinc-900/90 border border-zinc-800/80">
+      <div className="flex items-center gap-1.5 p-1 rounded-xl bg-zinc-900/90 border border-zinc-800">
         <span className="text-[11px] font-semibold text-zinc-400 px-2 uppercase tracking-wider">
           Color:
         </span>

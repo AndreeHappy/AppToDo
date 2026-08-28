@@ -1,5 +1,4 @@
 ﻿import React from 'react';
-import { motion } from 'framer-motion';
 import { Plus, Trash, ListChecks, FolderSimple } from '@phosphor-icons/react';
 import type { Agenda } from '../../types';
 import { getTodayString, formatDisplayDate } from '../../utils/date';
@@ -22,7 +21,7 @@ export const HeaderAgendas: React.FC<Props> = ({
   const todayStr = getTodayString();
 
   return (
-    <header className="bg-[#11131a] border-b border-white/[0.08] px-6 py-4 flex flex-col gap-3.5 select-none">
+    <header className="bg-[#11131a] border-b border-white/[0.08] px-6 py-4 flex flex-col gap-3.5 select-none transition-colors">
       {/* Top row */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -59,20 +58,12 @@ export const HeaderAgendas: React.FC<Props> = ({
               <button
                 key={agenda.id}
                 onClick={() => onSelectAgenda(agenda.id)}
-                className={`relative px-4 py-2 rounded-full text-xs font-semibold tracking-wide transition-colors flex items-center gap-2 active:scale-[0.98] ${
+                className={`relative px-4 py-2 rounded-full text-xs font-semibold tracking-wide transition-all flex items-center gap-2 active:scale-[0.98] ${
                   isActive
-                    ? 'text-white'
-                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60 bg-zinc-900/50 border border-white/[0.05]'
+                    ? 'text-white bg-indigo-600 shadow-md shadow-indigo-600/20'
+                    : 'text-zinc-400 hover:text-zinc-200 bg-zinc-900/60 hover:bg-zinc-800/60 border border-zinc-800/80'
                 }`}
               >
-                {isActive && (
-                  <motion.div
-                    layoutId="active-agenda-pill"
-                    className="absolute inset-0 bg-indigo-600/20 border-2 border-indigo-500/80 rounded-full shadow-[0_0_16px_rgba(99,102,241,0.25)]"
-                    transition={{ type: 'spring', stiffness: 380, damping: 28 }}
-                  />
-                )}
-
                 <span className="relative z-10 flex items-center gap-1.5">
                   <FolderSimple size={14} weight={isActive ? 'fill' : 'regular'} />
                   {agenda.name}
@@ -83,7 +74,7 @@ export const HeaderAgendas: React.FC<Props> = ({
                     role="button"
                     title="Eliminar agenda"
                     onClick={(e) => onDeleteAgenda(agenda.id, e)}
-                    className="relative z-10 p-0.5 text-zinc-500 hover:text-rose-400 rounded transition-colors"
+                    className="relative z-10 p-0.5 text-zinc-400 hover:text-rose-400 rounded transition-colors"
                   >
                     <Trash size={12} />
                   </span>

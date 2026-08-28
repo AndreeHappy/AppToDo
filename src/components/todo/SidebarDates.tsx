@@ -1,5 +1,4 @@
 ﻿import React from 'react';
-import { motion } from 'framer-motion';
 import { CalendarBlank, LockKey, LockKeyOpen, CalendarPlus } from '@phosphor-icons/react';
 import { formatDisplayDate, getTodayString, isPastDate } from '../../utils/date';
 
@@ -21,7 +20,7 @@ export const SidebarDates: React.FC<Props> = ({
   const today = getTodayString();
 
   return (
-    <aside className="w-56 shrink-0 bg-[#0f1117] border-r border-white/[0.08] p-4 flex flex-col gap-4 select-none">
+    <aside className="w-56 shrink-0 bg-[#0f1117] border-r border-white/[0.08] p-4 flex flex-col gap-4 select-none transition-colors">
       <div className="flex items-center justify-between px-2 pt-1">
         <div className="flex items-center gap-2 text-xs font-bold text-zinc-400 tracking-wider uppercase">
           <CalendarBlank size={15} />
@@ -48,35 +47,31 @@ export const SidebarDates: React.FC<Props> = ({
             <button
               key={dateStr}
               onClick={() => onSelectDate(dateStr)}
-              className={`relative w-full text-left px-3 py-2.5 rounded-lg text-xs font-medium transition-all flex items-center justify-between group active:scale-[0.98] ${
+              className={`relative w-full text-left px-3 py-2.5 rounded-xl text-xs font-medium transition-all flex items-center justify-between group active:scale-[0.98] ${
                 isSelected
-                  ? 'text-white font-semibold'
-                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40'
+                  ? 'text-white font-semibold bg-indigo-600 shadow-sm shadow-indigo-600/20'
+                  : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50 bg-zinc-900/40 border border-transparent hover:border-zinc-800/80'
               }`}
             >
-              {isSelected && (
-                <motion.div
-                  layoutId="active-date-bg"
-                  className="absolute inset-0 bg-zinc-800/90 border border-white/[0.1] rounded-lg shadow-sm"
-                  transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-                />
-              )}
-
               <span className="relative z-10 font-mono tracking-tight">
                 {formatDisplayDate(dateStr)}
               </span>
 
               <div className="relative z-10 flex items-center gap-1.5">
                 {isToday ? (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                    isSelected
+                      ? 'bg-white/20 text-white'
+                      : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                  }`}>
                     Hoy
                   </span>
                 ) : isLocked ? (
-                  <span title="Día cerrado (solo lectura)" className="text-zinc-500 group-hover:text-zinc-400">
+                  <span title="Día cerrado (solo lectura)" className={isSelected ? 'text-white/70' : 'text-zinc-500'}>
                     <LockKey size={13} />
                   </span>
                 ) : isPast && isUnlocked ? (
-                  <span title="Día desbloqueado para edición" className="text-amber-400">
+                  <span title="Día desbloqueado para edición" className={isSelected ? 'text-amber-200' : 'text-amber-400'}>
                     <LockKeyOpen size={13} />
                   </span>
                 ) : null}
