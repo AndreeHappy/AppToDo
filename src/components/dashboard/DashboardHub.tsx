@@ -12,17 +12,12 @@ import {
   Flame,
   Lightning,
   CheckCircle,
-  Sun,
-  Moon,
   Gear,
   User,
-  GithubLogo,
 } from '@phosphor-icons/react';
 import { useAuth } from '../../context/AuthContext';
 import { useFinance } from '../../context/FinanceContext';
 import { useTodo } from '../../context/TodoContext';
-import { useTheme } from '../../context/ThemeContext';
-import { StatusBadge } from '../ui/StatusBadge';
 import type { ActiveModule } from '../../types';
 
 interface Props {
@@ -31,64 +26,45 @@ interface Props {
   onOpenSettings?: () => void;
 }
 
-export const DashboardHub: React.FC<Props> = ({ onSelectModule, onOpenProfile, onOpenSettings }) => {
-  const { user, profile, logout, isMockMode } = useAuth();
+export const DashboardHub: React.FC<Props> = ({
+  onSelectModule,
+  onOpenProfile,
+  onOpenSettings,
+}) => {
+  const { user, profile, logout } = useAuth();
   const { summary, baseReserve } = useFinance();
   const { todayPendingCount } = useTodo();
-  const { theme, toggleTheme } = useTheme();
 
-  const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Usuario';
+  const displayName = profile?.full_name || user?.email?.split('@')[0] || 'Happy';
 
   return (
-    <div className="min-h-[100dvh] bg-[#090a0f] text-zinc-100 flex flex-col justify-between antialiased selection:bg-indigo-500/30 transition-colors">
-      {/* Top Hub Bar (Mobile Responsive) */}
-      <header className="bg-[#11131a] border-b border-white/[0.08] px-3.5 sm:px-8 py-2.5 sm:py-3.5 flex items-center justify-between transition-colors">
+    <div className="flex-1 flex flex-col justify-between antialiased selection:bg-indigo-500/30 transition-colors">
+      {/* Top Hub Bar (Clean & Minimal) */}
+      <header className="bg-[#11131a] border-b border-white/[0.08] px-4 sm:px-8 py-3 flex items-center justify-between transition-colors select-none">
         <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
           <div className="w-8 h-8 sm:w-9 sm:h-9 shrink-0 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
             <ShieldCheck size={20} weight="bold" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-xs sm:text-sm font-black text-white tracking-tight leading-none truncate">
+            <h1 className="text-sm font-black text-white tracking-tight leading-none truncate">
               Portal Multipropósito
             </h1>
-            <span className="text-[10px] sm:text-[11px] text-zinc-400 font-medium hidden sm:inline">
+            <span className="text-[11px] text-zinc-400 font-medium hidden sm:inline">
               Centro de Control Personal
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-          <StatusBadge isMockMode={isMockMode} className="hidden lg:inline-flex" />
-
-          {/* GitHub Repository Button */}
-          <a
-            href="https://github.com/AndreeHappy/AppToDo"
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Ver repositorio en GitHub"
-            className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-zinc-300 hover:text-white flex items-center gap-1.5 transition-all"
-          >
-            <GithubLogo size={15} weight="bold" />
-            <span className="hidden sm:inline">GitHub</span>
-          </a>
-
-          {/* Theme Toggle Button */}
-          <button
-            onClick={toggleTheme}
-            title={theme === 'dark' ? 'Cambiar a Tema Claro' : 'Cambiar a Tema Oscuro'}
-            className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-amber-300 transition-colors"
-          >
-            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
-          </button>
-
+        <div className="flex items-center gap-2 shrink-0">
           {/* Profile Shortcut */}
           {onOpenProfile && (
             <button
               onClick={onOpenProfile}
               title="Personalizar perfil"
-              className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition-colors"
             >
-              <User size={15} />
+              <User size={14} className="text-indigo-400" />
+              <span className="hidden sm:inline font-mono font-bold">{displayName}</span>
             </button>
           )}
 
@@ -107,10 +83,9 @@ export const DashboardHub: React.FC<Props> = ({ onSelectModule, onOpenProfile, o
           <button
             onClick={() => logout()}
             title="Cerrar sesión"
-            className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-zinc-900 hover:bg-rose-500/10 text-zinc-400 hover:text-rose-400 border border-zinc-800 text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            className="p-2 rounded-xl bg-zinc-900 hover:bg-rose-500/10 text-zinc-400 hover:text-rose-400 border border-zinc-800 transition-colors"
           >
             <SignOut size={15} />
-            <span className="hidden sm:inline">Salir</span>
           </button>
         </div>
       </header>
@@ -226,25 +201,6 @@ export const DashboardHub: React.FC<Props> = ({ onSelectModule, onOpenProfile, o
           </motion.div>
         </div>
       </main>
-
-      {/* Developer Copyright Footer */}
-      <footer className="py-4 border-t border-white/[0.06] text-center text-xs text-zinc-500 flex flex-col sm:flex-row items-center justify-center gap-2 px-6">
-        <span>© 2026 AppToDo</span>
-        <span className="hidden sm:inline">•</span>
-        <span>
-          Desarrollado por <strong className="text-zinc-300">Happy</strong>
-        </span>
-        <span className="hidden sm:inline">•</span>
-        <a
-          href="https://github.com/AndreeHappy/AppToDo"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-indigo-400 hover:text-indigo-300 hover:underline inline-flex items-center gap-1 font-medium transition-colors"
-        >
-          <GithubLogo size={13} weight="bold" />
-          <span>github.com/AndreeHappy/AppToDo</span>
-        </a>
-      </footer>
     </div>
   );
 };

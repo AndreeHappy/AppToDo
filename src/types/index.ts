@@ -7,6 +7,10 @@ export interface UserProfile {
   id: string;
   email: string;
   full_name: string;
+  phone_number?: string;
+  age?: number;
+  country?: string;
+  occupation?: string;
   avatar_url?: string;
   protected_reserve_base: number; // default S/. 950.00
   created_at: string;
@@ -61,16 +65,16 @@ export interface Transaction {
   category: string;
   counterparty_concept: string;
   notes?: string;
-  date: string; // "YYYY-MM-DD"
-  scheduled_datetime?: string; // "YYYY-MM-DDTHH:mm"
+  date: string;
+  scheduled_datetime?: string;
   status?: 'pending' | 'completed' | 'cancelled';
-  created_at: string;
+  created_at?: string;
 }
 
 export interface EmergencyWithdrawal {
   id: string;
   user_id: string;
-  transaction_id?: string;
+  transaction_id: string;
   amount_withdrawn: number;
   urgency_reason: string;
   previous_reserve: number;

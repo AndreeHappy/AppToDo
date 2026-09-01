@@ -25,7 +25,7 @@ html.light {
   color-scheme: light;
   --bg-main: #f4f6fb;
   --bg-surface: #ffffff;
-  --bg-input: #eef2f7;
+  --bg-input: #f8fafc;
   --text-main: #0f172a;
   --text-muted: #475569;
   --border-main: rgba(0, 0, 0, 0.09);
@@ -48,6 +48,7 @@ html.light .bg-\[\#0f1117\] {
 html.light .bg-\[\#11131a\],
 html.light .bg-\[\#12141e\],
 html.light .bg-\[\#13151f\],
+html.light .bg-\[\#131520\],
 html.light .bg-\[\#141520\],
 html.light .bg-\[\#141620\],
 html.light .bg-\[\#14181a\],
@@ -59,10 +60,13 @@ html.light .bg-\[\#181a24\] {
 html.light .bg-zinc-900,
 html.light .bg-zinc-900\/90,
 html.light .bg-zinc-900\/80,
+html.light .bg-zinc-900\/70,
 html.light .bg-zinc-900\/60,
 html.light .bg-zinc-900\/50,
 html.light .bg-zinc-900\/40 {
-  background-color: #f1f5f9 !important;
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
 }
 
 html.light .bg-zinc-800,
@@ -72,9 +76,12 @@ html.light .bg-zinc-800\/50,
 html.light .bg-zinc-800\/40,
 html.light .bg-zinc-800\/30 {
   background-color: #e2e8f0 !important;
+  border-color: #cbd5e1 !important;
   color: #1e293b !important;
 }
 
+html.light .border-white\/\[0\.12\],
+html.light .border-white\/\[0\.1\],
 html.light .border-white\/\[0\.08\],
 html.light .border-white\/\[0\.07\],
 html.light .border-white\/\[0\.06\],
@@ -83,6 +90,20 @@ html.light .border-zinc-800,
 html.light .border-zinc-800\/80,
 html.light .border-zinc-700 {
   border-color: rgba(0, 0, 0, 0.09) !important;
+}
+
+/* LIGHT MODE INPUTS */
+html.light input:not([type="button"]):not([type="submit"]),
+html.light select,
+html.light textarea {
+  background-color: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94a3b8 !important;
 }
 
 /* LIGHT MODE TYPOGRAPHY & HIGH CONTRAST */

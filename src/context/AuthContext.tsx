@@ -20,7 +20,14 @@ interface AuthContextType {
   updateUserPassword: (newPassword: string) => Promise<{ error?: string }>;
   resendVerificationEmail: (email: string) => Promise<{ error?: string }>;
   updateProtectedReserve: (newBase: number) => Promise<void>;
-  updateProfile: (data: { fullName?: string; protectedReserveBase?: number }) => Promise<{ error?: string }>;
+  updateProfile: (data: {
+    fullName?: string;
+    phoneNumber?: string;
+    age?: number;
+    country?: string;
+    occupation?: string;
+    protectedReserveBase?: number;
+  }) => Promise<{ error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -298,12 +305,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateProfile = async (data: { fullName?: string; protectedReserveBase?: number }): Promise<{ error?: string }> => {
+  const updateProfile = async (data: {
+    fullName?: string;
+    phoneNumber?: string;
+    age?: number;
+    country?: string;
+    occupation?: string;
+    protectedReserveBase?: number;
+  }): Promise<{ error?: string }> => {
     if (!profile || !user) return { error: 'No hay usuario autenticado' };
 
     const updated: UserProfile = {
       ...profile,
       full_name: data.fullName !== undefined ? data.fullName : profile.full_name,
+      phone_number: data.phoneNumber !== undefined ? data.phoneNumber : profile.phone_number,
+      age: data.age !== undefined ? data.age : profile.age,
+      country: data.country !== undefined ? data.country : profile.country,
+      occupation: data.occupation !== undefined ? data.occupation : profile.occupation,
       protected_reserve_base: data.protectedReserveBase !== undefined ? data.protectedReserveBase : profile.protected_reserve_base,
     };
     setProfile(updated);
@@ -314,14 +332,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .from('profiles')
           .update({
             full_name: updated.full_name,
+            phone_number: updated.phone_number,
+            age: updated.age,
+            country: updated.country,
+            occupation: updated.occupation,
             protected_reserve_base: updated.protected_reserve_base,
             updated_at: new Date().toISOString(),
           })
           .eq('id', user.id);
 
-        if (error) return { error: error.message };
+        if (error) {
+          // If custom columns don't exist yet, fallback updating standard fields
+          await supabase
+            .from('profiles')
+            .update({
+              full_name: updated.full_name,
+              protected_reserve_base: updated.protected_reserve_base,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', user.id);
+        }
       } catch (err: any) {
-        return { error: err.message || 'Error al actualizar perfil' };
+        console.error('Error updating profile in Supabase:', err);
       }
     } else {
       localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(updated));

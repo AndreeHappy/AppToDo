@@ -75,13 +75,22 @@ export const TodoProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const parsed = JSON.parse(saved);
         if (parsed.agendas) setAgendas(parsed.agendas);
         if (parsed.currentAgendaId) setCurrentAgendaId(parsed.currentAgendaId);
-        if (parsed.tasks) setTasks(parsed.tasks);
         if (parsed.unlockedDates) setUnlockedDates(parsed.unlockedDates);
+        if (parsed.tasks) {
+          // Automatic rollover: Advance unfinished tasks from past dates to today
+          const loadedTasks: Task[] = parsed.tasks.map((t: Task) => {
+            if (t.date < today && !t.completed) {
+              return { ...t, date: today };
+            }
+            return t;
+          });
+          setTasks(loadedTasks);
+        }
       } catch (e) {
         console.error('Error loading todo state', e);
       }
     }
-  }, []);
+  }, [today]);
 
   useEffect(() => {
     localStorage.setItem(
