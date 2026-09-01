@@ -20,6 +20,8 @@ import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '../../constants/categorie
 interface Props {
   isOpen: boolean;
   freeSpendingBalance: number;
+  freePhysicalBalance?: number;
+  freeDigitalBalance?: number;
   physicalBalance?: number;
   digitalBalance?: number;
   onClose: () => void;
@@ -50,6 +52,8 @@ interface Props {
 export const TransactionFormModal: React.FC<Props> = ({
   isOpen,
   freeSpendingBalance,
+  freePhysicalBalance,
+  freeDigitalBalance,
   physicalBalance = 0,
   digitalBalance = 0,
   onClose,
@@ -105,7 +109,9 @@ export const TransactionFormModal: React.FC<Props> = ({
     setErrorMsg(null);
   };
 
-  const currentAvailableFund = fundType === 'physical' ? physicalBalance : digitalBalance;
+  const currentAvailableFund = fundType === 'physical'
+    ? (freePhysicalBalance !== undefined ? freePhysicalBalance : physicalBalance)
+    : (freeDigitalBalance !== undefined ? freeDigitalBalance : digitalBalance);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -283,7 +289,7 @@ export const TransactionFormModal: React.FC<Props> = ({
                     Tipo de Fondo
                   </label>
                   <span className="text-[11px] font-mono text-zinc-400">
-                    Disp: <strong className={currentAvailableFund <= 0 ? 'text-rose-400' : 'text-emerald-400'}>
+                    Libre p/ Gasto: <strong className={currentAvailableFund <= 0 ? 'text-rose-400' : fundType === 'digital' ? 'text-blue-400' : 'text-emerald-400'}>
                       S/. {currentAvailableFund.toFixed(2)}
                     </strong>
                   </span>
@@ -295,12 +301,12 @@ export const TransactionFormModal: React.FC<Props> = ({
                     onClick={() => setFundType('digital')}
                     className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all ${
                       fundType === 'digital'
-                        ? 'bg-indigo-500/15 border-indigo-500/60 text-indigo-300'
+                        ? 'bg-blue-500/15 border-blue-500/60 text-blue-400 font-bold'
                         : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:text-zinc-200'
                     }`}
                   >
-                    <DeviceMobile size={15} />
-                    <span>Digital (S/. {digitalBalance.toFixed(0)})</span>
+                    <DeviceMobile size={15} className="text-blue-400" />
+                    <span>Digital (Libre: S/. {(freeDigitalBalance ?? digitalBalance).toFixed(2)})</span>
                   </button>
 
                   <button
@@ -308,12 +314,12 @@ export const TransactionFormModal: React.FC<Props> = ({
                     onClick={() => setFundType('physical')}
                     className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all ${
                       fundType === 'physical'
-                        ? 'bg-emerald-500/15 border-emerald-500/60 text-emerald-300'
+                        ? 'bg-emerald-500/15 border-emerald-500/60 text-emerald-400 font-bold'
                         : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:text-zinc-200'
                     }`}
                   >
-                    <Money size={15} />
-                    <span>Efectivo (S/. {physicalBalance.toFixed(0)})</span>
+                    <Money size={15} className="text-emerald-400" />
+                    <span>Efectivo (Libre: S/. {(freePhysicalBalance ?? physicalBalance).toFixed(2)})</span>
                   </button>
                 </div>
               </div>

@@ -18,7 +18,6 @@ export const CurrencyInput: React.FC<Props> = ({
   id,
   required = false,
 }) => {
-  // Convert initial string to integer cents (e.g. "15.00" -> 1500)
   const parseToCents = (valStr: string): number => {
     if (!valStr) return 0;
     const clean = valStr.replace(/[^0-9.]/g, '');
@@ -45,7 +44,6 @@ export const CurrencyInput: React.FC<Props> = ({
     if (e.key >= '0' && e.key <= '9') {
       e.preventDefault();
       const digit = parseInt(e.key, 10);
-      // Limit to 999,999.99 (99,999,999 cents)
       if (cents < 99999999) {
         const nextCents = cents * 10 + digit;
         setCents(nextCents);
@@ -55,13 +53,13 @@ export const CurrencyInput: React.FC<Props> = ({
       e.preventDefault();
       const nextCents = Math.floor(cents / 10);
       setCents(nextCents);
-      onChange(nextCents === 0 ? '' : (nextCents / 100).toFixed(2));
+      onChange(nextCents === 0 ? '0.00' : (nextCents / 100).toFixed(2));
     } else if (e.key === 'Delete') {
       e.preventDefault();
       setCents(0);
-      onChange('');
+      onChange('0.00');
     } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'Tab' || e.key === 'Enter') {
-      // allow default browser navigation
+      // allow navigation
     } else {
       e.preventDefault();
     }
@@ -89,7 +87,6 @@ export const CurrencyInput: React.FC<Props> = ({
         id={id}
         type="text"
         inputMode="numeric"
-        pattern="[0-9]*"
         value={formatDisplay(cents)}
         onKeyDown={handleKeyDown}
         onPaste={handlePaste}

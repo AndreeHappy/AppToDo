@@ -149,6 +149,8 @@ export const FinanceDashboard: React.FC<Props> = () => {
       <TransactionFormModal
         isOpen={isFormModalOpen}
         freeSpendingBalance={summary.freeSpendingBalance}
+        freePhysicalBalance={summary.freePhysicalBalance}
+        freeDigitalBalance={summary.freeDigitalBalance}
         physicalBalance={summary.physicalBalance}
         digitalBalance={summary.digitalBalance}
         onClose={() => setIsFormModalOpen(false)}

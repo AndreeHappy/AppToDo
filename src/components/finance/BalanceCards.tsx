@@ -55,22 +55,22 @@ export const BalanceCards: React.FC<Props> = ({
 
           {/* Subgrid de Desglose de Fondos Totales (Responsive y Claro) */}
           <div className="grid grid-cols-2 gap-2.5 pt-3 border-t border-white/[0.06]">
-            <div className="flex flex-col p-2.5 rounded-2xl bg-zinc-900/60 border border-zinc-800/80">
-              <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
+            <div className="flex flex-col p-2.5 rounded-2xl bg-emerald-500/5 border border-emerald-500/20">
+              <div className="flex items-center gap-1.5 text-[11px] text-emerald-400 font-semibold">
                 <Money size={14} className={isPhysicalNegative ? 'text-rose-400' : 'text-emerald-400'} />
                 <span>Efectivo</span>
               </div>
-              <div className={`text-xs sm:text-sm font-bold font-mono mt-1 whitespace-nowrap ${isPhysicalNegative ? 'text-rose-400' : 'text-zinc-100'}`}>
+              <div className={`text-xs sm:text-sm font-bold font-mono mt-1 whitespace-nowrap ${isPhysicalNegative ? 'text-rose-400' : 'text-emerald-400'}`}>
                 S/. {summary.physicalBalance.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
               </div>
             </div>
 
-            <div className="flex flex-col p-2.5 rounded-2xl bg-zinc-900/60 border border-zinc-800/80">
-              <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
-                <DeviceMobile size={14} className={isDigitalNegative ? 'text-rose-400' : 'text-indigo-400'} />
+            <div className="flex flex-col p-2.5 rounded-2xl bg-blue-500/5 border border-blue-500/20">
+              <div className="flex items-center gap-1.5 text-[11px] text-blue-400 font-semibold">
+                <DeviceMobile size={14} className={isDigitalNegative ? 'text-rose-400' : 'text-blue-400'} />
                 <span>Digital</span>
               </div>
-              <div className={`text-xs sm:text-sm font-bold font-mono mt-1 whitespace-nowrap ${isDigitalNegative ? 'text-rose-400' : 'text-zinc-100'}`}>
+              <div className={`text-xs sm:text-sm font-bold font-mono mt-1 whitespace-nowrap ${isDigitalNegative ? 'text-rose-400' : 'text-blue-400'}`}>
                 S/. {summary.digitalBalance.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
               </div>
             </div>
@@ -137,22 +137,22 @@ export const BalanceCards: React.FC<Props> = ({
 
           {/* Subgrid de Dinero Libre por Tipo de Fondo */}
           <div className="grid grid-cols-2 gap-2.5 pt-3 border-t border-white/[0.06]">
-            <div className="flex flex-col p-2.5 rounded-2xl bg-zinc-900/60 border border-zinc-800/80">
-              <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
+            <div className="flex flex-col p-2.5 rounded-2xl bg-emerald-500/5 border border-emerald-500/20">
+              <div className="flex items-center gap-1.5 text-[11px] text-emerald-400 font-semibold">
                 <Money size={14} className={summary.freePhysicalBalance <= 0 ? 'text-rose-400' : 'text-emerald-400'} />
                 <span>Libre Físico</span>
               </div>
-              <div className={`text-xs sm:text-sm font-bold font-mono mt-1 whitespace-nowrap ${summary.freePhysicalBalance <= 0 ? 'text-rose-400' : 'text-emerald-300'}`}>
+              <div className={`text-xs sm:text-sm font-bold font-mono mt-1 whitespace-nowrap ${summary.freePhysicalBalance <= 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
                 S/. {summary.freePhysicalBalance.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
               </div>
             </div>
 
-            <div className="flex flex-col p-2.5 rounded-2xl bg-zinc-900/60 border border-zinc-800/80">
-              <div className="flex items-center gap-1.5 text-[11px] text-zinc-400">
-                <DeviceMobile size={14} className={summary.freeDigitalBalance <= 0 ? 'text-rose-400' : 'text-indigo-400'} />
+            <div className="flex flex-col p-2.5 rounded-2xl bg-blue-500/5 border border-blue-500/20">
+              <div className="flex items-center gap-1.5 text-[11px] text-blue-400 font-semibold">
+                <DeviceMobile size={14} className={summary.freeDigitalBalance <= 0 ? 'text-rose-400' : 'text-blue-400'} />
                 <span>Libre Digital</span>
               </div>
-              <div className={`text-xs sm:text-sm font-bold font-mono mt-1 whitespace-nowrap ${summary.freeDigitalBalance <= 0 ? 'text-rose-400' : 'text-indigo-300'}`}>
+              <div className={`text-xs sm:text-sm font-bold font-mono mt-1 whitespace-nowrap ${summary.freeDigitalBalance <= 0 ? 'text-rose-400' : 'text-blue-400'}`}>
                 S/. {summary.freeDigitalBalance.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
               </div>
             </div>

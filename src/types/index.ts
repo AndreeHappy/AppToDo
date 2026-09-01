@@ -1,7 +1,7 @@
 ﻿export type Priority = 'high' | 'medium' | 'low';
 export type FundType = 'physical' | 'digital';
 export type TransactionType = 'income' | 'expense' | 'pending_expense';
-export type ActiveModule = 'hub' | 'todo' | 'finance';
+export type ActiveModule = 'hub' | 'todo' | 'finance' | 'profile' | 'settings';
 
 export interface UserProfile {
   id: string;
