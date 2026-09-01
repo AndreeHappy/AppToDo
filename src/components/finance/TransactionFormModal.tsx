@@ -14,6 +14,7 @@ import {
 } from '@phosphor-icons/react';
 import type { TransactionType, FundType } from '../../types';
 import { getTodayString } from '../../utils/date';
+import { CurrencyInput } from '../ui/CurrencyInput';
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '../../constants/categories';
 
 interface Props {
@@ -323,19 +324,11 @@ export const TransactionFormModal: React.FC<Props> = ({
                   <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
                     Monto (S/.)
                   </label>
-                  <div className="relative flex items-center">
-                    <span className="absolute left-3 text-zinc-500 font-mono text-xs">S/.</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0.01"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      placeholder="0.00"
-                      required
-                      className="w-full pl-9 pr-3 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-indigo-500 font-mono text-sm text-white outline-none"
-                    />
-                  </div>
+                  <CurrencyInput
+                    value={amount}
+                    onChange={setAmount}
+                    required
+                  />
                 </div>
 
                 <div className="flex flex-col gap-1.5">

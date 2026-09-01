@@ -16,6 +16,18 @@ export const TaskInputBar: React.FC<Props> = ({
   const [title, setTitle] = useState('');
   const [priority, setPriority] = useState<Priority>('high');
 
+  React.useEffect(() => {
+    const handleFocus = () => {
+      const input = document.getElementById('todo-main-task-input');
+      if (input) {
+        input.focus();
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    };
+    window.addEventListener('app:focus-task-input', handleFocus);
+    return () => window.removeEventListener('app:focus-task-input', handleFocus);
+  }, []);
+
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     const cleanTitle = title.trim();
@@ -48,6 +60,7 @@ export const TaskInputBar: React.FC<Props> = ({
       className="p-3 rounded-2xl bg-[#11131a] border border-white/[0.08] flex items-center gap-3 flex-wrap shadow-sm transition-colors"
     >
       <input
+        id="todo-main-task-input"
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}

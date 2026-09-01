@@ -14,6 +14,8 @@ import {
   CheckCircle,
   Sun,
   Moon,
+  Gear,
+  User,
   GithubLogo,
 } from '@phosphor-icons/react';
 import { useAuth } from '../../context/AuthContext';
@@ -25,9 +27,11 @@ import type { ActiveModule } from '../../types';
 
 interface Props {
   onSelectModule: (module: ActiveModule) => void;
+  onOpenProfile?: () => void;
+  onOpenSettings?: () => void;
 }
 
-export const DashboardHub: React.FC<Props> = ({ onSelectModule }) => {
+export const DashboardHub: React.FC<Props> = ({ onSelectModule, onOpenProfile, onOpenSettings }) => {
   const { user, profile, logout, isMockMode } = useAuth();
   const { summary, baseReserve } = useFinance();
   const { todayPendingCount } = useTodo();
@@ -77,9 +81,31 @@ export const DashboardHub: React.FC<Props> = ({ onSelectModule }) => {
             {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
           </button>
 
+          {/* Profile Shortcut */}
+          {onOpenProfile && (
+            <button
+              onClick={onOpenProfile}
+              title="Personalizar perfil"
+              className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-white transition-colors"
+            >
+              <User size={15} />
+            </button>
+          )}
+
+          {/* Settings Shortcut */}
+          {onOpenSettings && (
+            <button
+              onClick={onOpenSettings}
+              title="Ajustes y configuración"
+              className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-white transition-colors"
+            >
+              <Gear size={15} />
+            </button>
+          )}
+
           {/* Logout Button */}
           <button
-            onClick={logout}
+            onClick={() => logout()}
             title="Cerrar sesión"
             className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-zinc-900 hover:bg-rose-500/10 text-zinc-400 hover:text-rose-400 border border-zinc-800 text-xs font-semibold flex items-center gap-1.5 transition-colors"
           >

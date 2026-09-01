@@ -1,6 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, LockKey, Check, ShieldCheck } from '@phosphor-icons/react';
+import { CurrencyInput } from '../ui/CurrencyInput';
 
 interface Props {
   isOpen: boolean;
@@ -17,12 +18,12 @@ export const ReserveSettingsModal: React.FC<Props> = ({
   onClose,
   onSave,
 }) => {
-  const [amount, setAmount] = useState<string>(currentBaseReserve.toString());
+  const [amount, setAmount] = useState<string>(currentBaseReserve.toFixed(2));
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
-      setAmount(currentBaseReserve.toString());
+      setAmount(currentBaseReserve.toFixed(2));
       setErrorMsg(null);
     }
   }, [isOpen, currentBaseReserve]);
@@ -94,21 +95,11 @@ export const ReserveSettingsModal: React.FC<Props> = ({
                 <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
                   Monto Base de Reserva (S/.)
                 </label>
-                <div className="relative flex items-center">
-                  <span className="absolute left-3.5 text-zinc-400 font-mono font-bold text-sm">
-                    S/.
-                  </span>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    placeholder="950.00"
-                    required
-                    className="w-full pl-12 pr-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-amber-500/80 font-mono text-sm text-white outline-none transition-colors"
-                  />
-                </div>
+                <CurrencyInput
+                  value={amount}
+                  onChange={setAmount}
+                  required
+                />
                 {errorMsg && (
                   <span className="text-[11px] text-rose-400 font-medium">{errorMsg}</span>
                 )}
@@ -124,7 +115,7 @@ export const ReserveSettingsModal: React.FC<Props> = ({
                     <button
                       key={p}
                       type="button"
-                      onClick={() => setAmount(p.toString())}
+                      onClick={() => setAmount(p.toFixed(2))}
                       className={`py-1.5 px-2 rounded-lg text-xs font-mono font-semibold border transition-all ${
                         parseFloat(amount) === p
                           ? 'bg-amber-500/20 border-amber-500/60 text-amber-300'

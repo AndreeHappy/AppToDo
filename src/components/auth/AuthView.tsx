@@ -75,6 +75,8 @@ export const AuthView: React.FC = () => {
     resendVerificationEmail,
     isMockMode,
     isPasswordRecovery,
+    sessionExpiredNotice,
+    clearSessionExpiredNotice,
   } = useAuth();
 
   const [mode, setMode] = useState<AuthMode>('login');
@@ -296,6 +298,30 @@ export const AuthView: React.FC = () => {
             </button>
           </div>
         )}
+
+                {/* Session Inactivity Timeout Notice */}
+        <AnimatePresence>
+          {sessionExpiredNotice && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="p-3.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-200 text-xs flex items-start justify-between gap-2"
+            >
+              <div className="flex items-center gap-2">
+                <WarningCircle size={16} weight="fill" className="shrink-0 text-amber-400 mt-0.5" />
+                <span className="leading-relaxed">{sessionExpiredNotice}</span>
+              </div>
+              <button
+                type="button"
+                onClick={clearSessionExpiredNotice}
+                className="text-amber-400 hover:text-white shrink-0 p-0.5"
+              >
+                ✕
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Error Alert con botón de Reenvío si aplica */}
         <AnimatePresence>

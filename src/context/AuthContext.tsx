@@ -1,6 +1,9 @@
-﻿import React, { createContext, useContext, useState, useEffect } from 'react';
+﻿import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import type { UserProfile } from '../types';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+
+// 15 minutes session inactivity timeout in milliseconds
+const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000;
 
 interface AuthContextType {
   user: { id: string; email: string } | null;
@@ -8,24 +11,88 @@ interface AuthContextType {
   loading: boolean;
   isMockMode: boolean;
   isPasswordRecovery: boolean;
+  sessionExpiredNotice: string | null;
+  clearSessionExpiredNotice: () => void;
   login: (email: string, password: string) => Promise<{ error?: string }>;
   register: (email: string, password: string, fullName: string) => Promise<{ error?: string; requiresEmailConfirmation?: boolean }>;
-  logout: () => Promise<void>;
+  logout: (reason?: string) => Promise<void>;
   resetPasswordForEmail: (email: string) => Promise<{ error?: string }>;
   updateUserPassword: (newPassword: string) => Promise<{ error?: string }>;
   resendVerificationEmail: (email: string) => Promise<{ error?: string }>;
   updateProtectedReserve: (newBase: number) => Promise<void>;
+  updateProfile: (data: { fullName?: string; protectedReserveBase?: number }) => Promise<{ error?: string }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const LOCAL_STORAGE_USER_KEY = 'app_portal_auth_user_v1';
+const SESSION_EXPIRED_KEY = 'app_portal_session_expired_notice';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<{ id: string; email: string } | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [sessionExpiredNotice, setSessionExpiredNotice] = useState<string | null>(() => {
+    return sessionStorage.getItem(SESSION_EXPIRED_KEY) || null;
+  });
+
+  const lastActivityRef = useRef<number>(Date.now());
+
+  const clearSessionExpiredNotice = () => {
+    setSessionExpiredNotice(null);
+    sessionStorage.removeItem(SESSION_EXPIRED_KEY);
+  };
+
+  const logout = useCallback(async (reason?: string) => {
+    if (reason) {
+      sessionStorage.setItem(SESSION_EXPIRED_KEY, reason);
+      setSessionExpiredNotice(reason);
+    } else {
+      clearSessionExpiredNotice();
+    }
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.auth.signOut();
+      } catch (err) {
+        console.error('Error signing out of Supabase:', err);
+      }
+    } else {
+      localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
+    }
+    setUser(null);
+    setProfile(null);
+  }, []);
+
+  // Track User Activity for Inactivity Auto-Logout
+  useEffect(() => {
+    const handleUserActivity = () => {
+      lastActivityRef.current = Date.now();
+    };
+
+    const activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
+    activityEvents.forEach((evt) => {
+      window.addEventListener(evt, handleUserActivity, { passive: true });
+    });
+
+    // Interval check every 10 seconds
+    const interval = setInterval(() => {
+      if (user) {
+        const timeIdle = Date.now() - lastActivityRef.current;
+        if (timeIdle >= INACTIVITY_TIMEOUT_MS) {
+          logout('Tu sesión se cerró automáticamente tras 15 minutos de inactividad por seguridad.');
+        }
+      }
+    }, 10000);
+
+    return () => {
+      activityEvents.forEach((evt) => {
+        window.removeEventListener(evt, handleUserActivity);
+      });
+      clearInterval(interval);
+    };
+  }, [user, logout]);
 
   // Initialize auth state
   useEffect(() => {
@@ -43,7 +110,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setLoading(false);
         }
 
-        // Listen for auth state changes (including password recovery)
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
           if (event === 'PASSWORD_RECOVERY') {
             setIsPasswordRecovery(true);
@@ -61,7 +127,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         return () => subscription.unsubscribe();
       } else {
-        // Local fallback mode
         const saved = localStorage.getItem(LOCAL_STORAGE_USER_KEY);
         if (saved) {
           try {
@@ -69,7 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser({ id: parsed.id, email: parsed.email });
             setProfile(parsed);
           } catch {
-            // reset if corrupted
+            // ignored
           }
         }
         setLoading(false);
@@ -106,16 +171,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const login = async (email: string, password: string): Promise<{ error?: string }> => {
+    clearSessionExpiredNotice();
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) return { error: error.message };
       if (data.user) {
         setUser({ id: data.user.id, email: data.user.email || '' });
         await fetchProfile(data.user.id, data.user.email || '');
+        lastActivityRef.current = Date.now();
       }
       return {};
     } else {
-      // Local Mock Login
       const mockUser: UserProfile = {
         id: 'usr_' + btoa(email).slice(0, 12),
         email,
@@ -126,6 +192,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(mockUser));
       setUser({ id: mockUser.id, email: mockUser.email });
       setProfile(mockUser);
+      lastActivityRef.current = Date.now();
       return {};
     }
   };
@@ -135,6 +202,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     password: string,
     fullName: string
   ): Promise<{ error?: string; requiresEmailConfirmation?: boolean }> => {
+    clearSessionExpiredNotice();
     if (isSupabaseConfigured && supabase) {
       const redirectUrl = typeof window !== 'undefined' ? window.location.origin : undefined;
 
@@ -149,7 +217,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) return { error: error.message };
 
-      // If user was created but session is null, email confirmation is required by Supabase
       if (data.user && !data.session) {
         return { requiresEmailConfirmation: true };
       }
@@ -157,10 +224,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data.user) {
         setUser({ id: data.user.id, email: data.user.email || '' });
         await fetchProfile(data.user.id, data.user.email || '');
+        lastActivityRef.current = Date.now();
       }
       return {};
     } else {
-      // Local Mock Register
       const mockUser: UserProfile = {
         id: 'usr_' + btoa(email).slice(0, 12),
         email,
@@ -171,6 +238,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(mockUser));
       setUser({ id: mockUser.id, email: mockUser.email });
       setProfile(mockUser);
+      lastActivityRef.current = Date.now();
       return {};
     }
   };
@@ -199,9 +267,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       if (error) return { error: error.message };
       return {};
-    } else {
-      return {};
     }
+    return {};
   };
 
   const updateUserPassword = async (newPassword: string): Promise<{ error?: string }> => {
@@ -214,16 +281,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsPasswordRecovery(false);
       return {};
     }
-  };
-
-  const logout = async () => {
-    if (isSupabaseConfigured && supabase) {
-      await supabase.auth.signOut();
-    } else {
-      localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
-    }
-    setUser(null);
-    setProfile(null);
   };
 
   const updateProtectedReserve = async (newBase: number) => {
@@ -241,6 +298,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateProfile = async (data: { fullName?: string; protectedReserveBase?: number }): Promise<{ error?: string }> => {
+    if (!profile || !user) return { error: 'No hay usuario autenticado' };
+
+    const updated: UserProfile = {
+      ...profile,
+      full_name: data.fullName !== undefined ? data.fullName : profile.full_name,
+      protected_reserve_base: data.protectedReserveBase !== undefined ? data.protectedReserveBase : profile.protected_reserve_base,
+    };
+    setProfile(updated);
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            full_name: updated.full_name,
+            protected_reserve_base: updated.protected_reserve_base,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', user.id);
+
+        if (error) return { error: error.message };
+      } catch (err: any) {
+        return { error: err.message || 'Error al actualizar perfil' };
+      }
+    } else {
+      localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(updated));
+    }
+
+    return {};
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -249,6 +338,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loading,
         isMockMode: !isSupabaseConfigured,
         isPasswordRecovery,
+        sessionExpiredNotice,
+        clearSessionExpiredNotice,
         login,
         register,
         logout,
@@ -256,6 +347,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateUserPassword,
         resendVerificationEmail,
         updateProtectedReserve,
+        updateProfile,
       }}
     >
       {children}

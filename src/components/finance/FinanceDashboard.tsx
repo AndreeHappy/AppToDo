@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   Plus,
   ShieldWarning,
@@ -40,6 +40,12 @@ export const FinanceDashboard: React.FC<Props> = () => {
   const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false);
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [isReserveModalOpen, setIsReserveModalOpen] = useState(false);
+
+  useEffect(() => {
+    const handleOpen = () => setIsFormModalOpen(true);
+    window.addEventListener('app:open-transaction-modal', handleOpen);
+    return () => window.removeEventListener('app:open-transaction-modal', handleOpen);
+  }, []);
 
   const [pendingEmergencyData, setPendingEmergencyData] = useState<{
     type: TransactionType;
