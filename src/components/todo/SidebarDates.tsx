@@ -1,6 +1,6 @@
 ﻿import React, { useMemo } from 'react';
 import { CalendarBlank, LockKey, LockKeyOpen, CalendarPlus, Calendar, Folder } from '@phosphor-icons/react';
-import { formatDisplayDate, getTodayString, isPastDate } from '../../utils/date';
+import { getTodayString, isPastDate } from '../../utils/date';
 
 interface Props {
   dates: string[];
@@ -16,10 +16,6 @@ interface DateHierarchy {
   };
 }
 
-const MONTH_NAMES = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-];
 
 export const SidebarDates: React.FC<Props> = ({
   dates,
@@ -41,8 +37,12 @@ export const SidebarDates: React.FC<Props> = ({
       const parts = d.split('-');
       if (parts.length >= 3) {
         const year = parts[0];
-        const monthIndex = parseInt(parts[1], 10) - 1;
-        const monthName = MONTH_NAMES[monthIndex] || parts[1];
+        const monthNum = parseInt(parts[1], 10);
+        const monthNamesList = [
+          'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+          'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
+        ];
+        const monthName = monthNamesList[monthNum - 1] || parts[1];
 
         if (!tree[year]) tree[year] = {};
         if (!tree[year][monthName]) tree[year][monthName] = [];
@@ -56,10 +56,10 @@ export const SidebarDates: React.FC<Props> = ({
   return (
     <aside className="w-60 shrink-0 bg-[#0f1117] border-r border-white/[0.08] p-3.5 flex flex-col gap-3.5 select-none transition-colors">
       {/* Header */}
-      <div className="flex items-center justify-between px-2 pt-1 pb-1 border-b border-white/[0.06]">
+      <div className="flex items-center justify-between px-1 pb-1">
         <div className="flex items-center gap-2 text-xs font-bold text-zinc-300 tracking-wider uppercase">
           <CalendarBlank size={16} className="text-indigo-400" />
-          <span>Historial de Fechas</span>
+          <span>HISTORIAL DE FECHAS</span>
         </div>
         <button
           onClick={onAddCustomDate}
@@ -70,28 +70,30 @@ export const SidebarDates: React.FC<Props> = ({
         </button>
       </div>
 
-      {/* Hierarchical Date Tree */}
-      <div className="flex flex-col gap-3.5 overflow-y-auto pr-1 text-xs">
+      {/* Hierarchical Date Tree (Matching Image 4) */}
+      <div className="flex flex-col gap-3 overflow-y-auto pr-1 text-xs">
         {Object.entries(hierarchy).map(([year, months]) => (
-          <div key={year} className="flex flex-col gap-2">
-            {/* Year Header */}
-            <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-zinc-900/80 border border-zinc-800 text-[11px] font-black text-indigo-400 tracking-wider font-mono">
-              <Calendar size={13} weight="bold" />
-              <span>AÑO {year}</span>
+          <div key={year} className="flex flex-col gap-2.5">
+            {/* Year Box Header */}
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-zinc-900/90 border border-zinc-800 text-xs font-black text-indigo-400 font-mono tracking-wider shadow-xs">
+              <Calendar size={15} weight="bold" />
+              <span>{year}</span>
             </div>
 
             {/* Months within Year */}
-            <div className="flex flex-col gap-2 pl-2">
+            <div className="flex flex-col gap-2.5 pl-1.5">
               {Object.entries(months).map(([month, dayList]) => (
-                <div key={month} className="flex flex-col gap-1">
-                  <div className="flex items-center gap-1.5 px-1.5 text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-                    <Folder size={11} className="text-zinc-600" />
+                <div key={month} className="flex flex-col gap-1.5">
+                  {/* Month Subtitle */}
+                  <div className="flex items-center gap-1.5 px-2 text-[10px] font-bold text-zinc-500 uppercase tracking-wider font-mono">
+                    <Folder size={12} className="text-zinc-600" />
                     <span>{month}</span>
                   </div>
 
-                  {/* Days within Month */}
+                  {/* Day Buttons (Showing only Day number e.g. 02, 01 matching Image 4) */}
                   <div className="flex flex-col gap-1 pl-1">
                     {dayList.map((dateStr) => {
+                      const dayNumber = dateStr.split('-')[2] || dateStr;
                       const isSelected = dateStr === selectedDate;
                       const isToday = dateStr === today;
                       const isPast = isPastDate(dateStr);
@@ -102,32 +104,33 @@ export const SidebarDates: React.FC<Props> = ({
                         <button
                           key={dateStr}
                           onClick={() => onSelectDate(dateStr)}
-                          className={`relative w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition-all flex items-center justify-between group active:scale-[0.98] ${
+                          className={`relative w-full text-left px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-between group active:scale-[0.98] ${
                             isSelected
-                              ? 'text-white font-semibold bg-indigo-600 shadow-sm shadow-indigo-600/25'
-                              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/60 bg-zinc-900/40 border border-transparent hover:border-zinc-800'
+                              ? 'text-white bg-indigo-600 shadow-md shadow-indigo-600/30'
+                              : 'text-zinc-300 hover:text-white hover:bg-zinc-800/70 bg-zinc-900/40 border border-transparent hover:border-zinc-800'
                           }`}
                         >
-                          <span className="relative z-10 font-mono tracking-tight">
-                            {formatDisplayDate(dateStr)}
+                          {/* Day Number Only */}
+                          <span className="relative z-10 font-mono text-sm tracking-tight font-black">
+                            {dayNumber}
                           </span>
 
                           <div className="relative z-10 flex items-center gap-1.5">
                             {isToday ? (
-                              <span className={`px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider ${
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase font-mono tracking-wider ${
                                 isSelected
-                                  ? 'bg-white/20 text-white'
-                                  : 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                                  ? 'bg-white/25 text-white'
+                                  : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40'
                               }`}>
-                                Hoy
+                                HOY
                               </span>
                             ) : isLocked ? (
                               <span title="Día archivado (solo lectura)" className={isSelected ? 'text-white/70' : 'text-zinc-500'}>
-                                <LockKey size={12} />
+                                <LockKey size={13} />
                               </span>
                             ) : isPast && isUnlocked ? (
                               <span title="Día habilitado para edición" className={isSelected ? 'text-amber-200' : 'text-amber-400'}>
-                                <LockKeyOpen size={12} />
+                                <LockKeyOpen size={13} />
                               </span>
                             ) : null}
                           </div>

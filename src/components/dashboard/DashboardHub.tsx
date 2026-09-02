@@ -100,8 +100,8 @@ export const DashboardHub: React.FC<Props> = ({
           <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
             Bienvenido, {displayName}
           </h2>
-          <p className="text-xs sm:text-sm text-zinc-400 max-w-xl leading-relaxed">
-            Selecciona el módulo que deseas utilizar. Todos tus datos se guardan y sincronizan automáticamente.
+          <p className="text-xs sm:text-sm text-zinc-400 font-medium">
+            Seleccione su módulo de trabajo
           </p>
         </div>
 
@@ -127,8 +127,8 @@ export const DashboardHub: React.FC<Props> = ({
                 <h3 className="text-xl font-bold text-white tracking-tight group-hover:text-indigo-300 transition-colors">
                   Módulo de Tareas (To-Do)
                 </h3>
-                <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-                  Organizador de tareas por agendas, fechas automáticas con historial y guardado diario de bitácoras en Markdown.
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  Organiza tus tareas diarias
                 </p>
               </div>
 
@@ -173,8 +173,8 @@ export const DashboardHub: React.FC<Props> = ({
                 <h3 className="text-xl font-bold text-white tracking-tight group-hover:text-emerald-300 transition-colors">
                   Finanzas Personales
                 </h3>
-                <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
-                  Gestión de flujo de caja con fondos físicos y digitales, control de saldo libre y protección de fondo de ahorro configurable.
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  Gestiona tus gastos diarios
                 </p>
               </div>
 

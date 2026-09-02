@@ -17,7 +17,6 @@ import {
   PaperPlaneRight,
 } from '@phosphor-icons/react';
 import { useAuth } from '../../context/AuthContext';
-import { StatusBadge } from '../ui/StatusBadge';
 
 type AuthMode = 'login' | 'register' | 'forgot_password';
 
@@ -73,7 +72,6 @@ export const AuthView: React.FC = () => {
     resetPasswordForEmail,
     updateUserPassword,
     resendVerificationEmail,
-    isMockMode,
     isPasswordRecovery,
     sessionExpiredNotice,
     clearSessionExpiredNotice,
@@ -240,10 +238,7 @@ export const AuthView: React.FC = () => {
               : 'Acceso seguro a tu Centro de Tareas y Gestor de Finanzas Personales'}
           </p>
 
-          {/* Connection Status Badge */}
-          <div className="mt-1">
-            <StatusBadge isMockMode={isMockMode} />
-          </div>
+
         </div>
 
         {/* Tab Switcher */}

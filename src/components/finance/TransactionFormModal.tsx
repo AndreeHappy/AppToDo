@@ -299,27 +299,27 @@ export const TransactionFormModal: React.FC<Props> = ({
                   <button
                     type="button"
                     onClick={() => setFundType('digital')}
-                    className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all ${
+                    className={`py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition-all ${
                       fundType === 'digital'
-                        ? 'bg-blue-500/15 border-blue-500/60 text-blue-400 font-bold'
+                        ? 'bg-blue-500/15 border-blue-500/60 text-blue-400 shadow-sm'
                         : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:text-zinc-200'
                     }`}
                   >
-                    <DeviceMobile size={15} className="text-blue-400" />
-                    <span>Digital (Libre: S/. {(freeDigitalBalance ?? digitalBalance).toFixed(2)})</span>
+                    <DeviceMobile size={16} className="text-blue-400" />
+                    <span>Digital</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setFundType('physical')}
-                    className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all ${
+                    className={`py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition-all ${
                       fundType === 'physical'
-                        ? 'bg-emerald-500/15 border-emerald-500/60 text-emerald-400 font-bold'
+                        ? 'bg-emerald-500/15 border-emerald-500/60 text-emerald-400 shadow-sm'
                         : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:text-zinc-200'
                     }`}
                   >
-                    <Money size={15} className="text-emerald-400" />
-                    <span>Efectivo (Libre: S/. {(freePhysicalBalance ?? physicalBalance).toFixed(2)})</span>
+                    <Money size={16} className="text-emerald-400" />
+                    <span>Efectivo</span>
                   </button>
                 </div>
               </div>
@@ -328,7 +328,7 @@ export const TransactionFormModal: React.FC<Props> = ({
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                    Monto (S/.)
+                    Monto:
                   </label>
                   <CurrencyInput
                     value={amount}
