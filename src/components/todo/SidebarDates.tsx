@@ -1,4 +1,5 @@
 ﻿import React, { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { CalendarBlank, LockKey, LockKeyOpen, CalendarPlus, Calendar, Folder } from '@phosphor-icons/react';
 import { getTodayString, isPastDate } from '../../utils/date';
 
@@ -15,7 +16,6 @@ interface DateHierarchy {
     [month: string]: string[];
   };
 }
-
 
 export const SidebarDates: React.FC<Props> = ({
   dates,
@@ -70,7 +70,7 @@ export const SidebarDates: React.FC<Props> = ({
         </button>
       </div>
 
-      {/* Hierarchical Date Tree (Matching Image 4) */}
+      {/* Hierarchical Date Tree with Animated Feedback */}
       <div className="flex flex-col gap-3 overflow-y-auto pr-1 text-xs">
         {Object.entries(hierarchy).map(([year, months]) => (
           <div key={year} className="flex flex-col gap-2.5">
@@ -90,7 +90,7 @@ export const SidebarDates: React.FC<Props> = ({
                     <span>{month}</span>
                   </div>
 
-                  {/* Day Buttons (Showing only Day number e.g. 02, 01 matching Image 4) */}
+                  {/* Day Buttons with Smooth Spring Animations */}
                   <div className="flex flex-col gap-1 pl-1">
                     {dayList.map((dateStr) => {
                       const dayNumber = dateStr.split('-')[2] || dateStr;
@@ -101,15 +101,26 @@ export const SidebarDates: React.FC<Props> = ({
                       const isLocked = isPast && !isUnlocked;
 
                       return (
-                        <button
+                        <motion.button
                           key={dateStr}
                           onClick={() => onSelectDate(dateStr)}
-                          className={`relative w-full text-left px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-between group active:scale-[0.98] ${
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.96 }}
+                          className={`relative w-full text-left px-3.5 py-2 rounded-xl text-xs font-bold transition-colors flex items-center justify-between group overflow-hidden ${
                             isSelected
-                              ? 'text-white bg-indigo-600 shadow-md shadow-indigo-600/30'
+                              ? 'text-white'
                               : 'text-zinc-300 hover:text-white hover:bg-zinc-800/70 bg-zinc-900/40 border border-transparent hover:border-zinc-800'
                           }`}
                         >
+                          {/* Animated Active Pill Indicator */}
+                          {isSelected && (
+                            <motion.div
+                              layoutId="active-date-highlight"
+                              className="absolute inset-0 bg-indigo-600 rounded-xl shadow-md shadow-indigo-600/30 z-0"
+                              transition={{ type: 'spring', stiffness: 450, damping: 32 }}
+                            />
+                          )}
+
                           {/* Day Number Only */}
                           <span className="relative z-10 font-mono text-sm tracking-tight font-black">
                             {dayNumber}
@@ -117,7 +128,7 @@ export const SidebarDates: React.FC<Props> = ({
 
                           <div className="relative z-10 flex items-center gap-1.5">
                             {isToday ? (
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase font-mono tracking-wider ${
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase font-mono tracking-wider transition-colors ${
                                 isSelected
                                   ? 'bg-white/25 text-white'
                                   : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40'
@@ -134,7 +145,7 @@ export const SidebarDates: React.FC<Props> = ({
                               </span>
                             ) : null}
                           </div>
-                        </button>
+                        </motion.button>
                       );
                     })}
                   </div>

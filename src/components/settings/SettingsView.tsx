@@ -1,19 +1,24 @@
-﻿import React from 'react';
+﻿import React, { useState } from 'react';
 import {
   Gear,
   Sun,
   Moon,
   GithubLogo,
-  ShieldCheck,
   SignOut,
   ArrowSquareOut,
   Code,
   Translate,
   Bank,
   House,
+  Sparkle,
 } from '@phosphor-icons/react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import {
+  getStoredBgSettings,
+  saveStoredBgSettings,
+  type BgSettings,
+} from '../ui/InteractiveBackground';
 
 interface Props {
   onBackToHub: () => void;
@@ -22,6 +27,13 @@ interface Props {
 export const SettingsView: React.FC<Props> = ({ onBackToHub }) => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const [bgSettings, setBgSettings] = useState<BgSettings>(getStoredBgSettings);
+
+  const updateBgSetting = (partial: Partial<BgSettings>) => {
+    const updated = { ...bgSettings, ...partial };
+    setBgSettings(updated);
+    saveStoredBgSettings(updated);
+  };
 
   return (
     <div className="flex-1 max-w-4xl mx-auto w-full p-4 sm:p-8 flex flex-col gap-6 overflow-y-auto antialiased">
@@ -71,7 +83,98 @@ export const SettingsView: React.FC<Props> = ({ onBackToHub }) => {
           </button>
         </div>
 
-        {/* Card 2: GitHub Repository */}
+        {/* Card 2: Fondo Interactivo y Efectos Visuales */}
+        <div className="p-5 rounded-3xl bg-[#11131a] border border-white/[0.08] shadow-xl flex flex-col gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center shrink-0">
+              <Sparkle size={22} weight="bold" />
+            </div>
+            <div className="flex flex-col">
+              <h2 className="text-base font-bold text-white">Fondo Interactivo</h2>
+              <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">
+                Personaliza la animación de fondo, el nivel de desenfoque (blur) y la opacidad.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3 pt-1 text-xs">
+            {/* Mode selection */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">Estilo de Fondo</span>
+              <div className="grid grid-cols-3 gap-1.5">
+                {[
+                  { id: 'dots', label: 'Puntos' },
+                  { id: 'aurora', label: 'Aurora' },
+                  { id: 'minimal', label: 'Sólido' },
+                ].map((m) => (
+                  <button
+                    key={m.id}
+                    onClick={() => updateBgSetting({ mode: m.id as any })}
+                    className={`py-1.5 px-2 rounded-xl text-xs font-bold transition-all border ${
+                      bgSettings.mode === m.id
+                        ? 'bg-indigo-600 border-indigo-500 text-white shadow-xs'
+                        : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Blur selection */}
+            {bgSettings.mode !== 'minimal' && (
+              <>
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-bold text-zinc-400 uppercase tracking-wider">Desenfoque (Blur)</span>
+                    <span className="font-mono text-zinc-400">{bgSettings.blur}px</span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {[0, 4, 8, 16].map((b) => (
+                      <button
+                        key={b}
+                        onClick={() => updateBgSetting({ blur: b })}
+                        className={`py-1 rounded-lg font-mono text-[11px] font-semibold border transition-all ${
+                          bgSettings.blur === b
+                            ? 'bg-indigo-600 border-indigo-500 text-white'
+                            : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
+                        }`}
+                      >
+                        {b === 0 ? 'Nítido' : `${b}px`}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Opacity selection */}
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-bold text-zinc-400 uppercase tracking-wider">Opacidad / Intensidad</span>
+                    <span className="font-mono text-zinc-400">{bgSettings.opacity}%</span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {[25, 50, 75, 100].map((op) => (
+                      <button
+                        key={op}
+                        onClick={() => updateBgSetting({ opacity: op })}
+                        className={`py-1 rounded-lg font-mono text-[11px] font-semibold border transition-all ${
+                          bgSettings.opacity === op
+                            ? 'bg-indigo-600 border-indigo-500 text-white'
+                            : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
+                        }`}
+                      >
+                        {op}%
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Card 3: GitHub Repository */}
         <div className="p-5 rounded-3xl bg-[#11131a] border border-white/[0.08] shadow-xl flex flex-col justify-between gap-4">
           <div className="flex items-start gap-3.5">
             <div className="w-10 h-10 rounded-2xl bg-zinc-800 text-white flex items-center justify-center shrink-0">
@@ -94,30 +197,6 @@ export const SettingsView: React.FC<Props> = ({ onBackToHub }) => {
             <span>Ver Repositorio en GitHub</span>
             <ArrowSquareOut size={15} className="group-hover:translate-x-0.5 transition-transform" />
           </a>
-        </div>
-
-        {/* Card 3: Seguridad de Sesión */}
-        <div className="p-5 rounded-3xl bg-[#11131a] border border-white/[0.08] shadow-xl flex flex-col justify-between gap-4">
-          <div className="flex items-start gap-3.5">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center shrink-0">
-              <ShieldCheck size={22} weight="fill" />
-            </div>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-white">Bloqueo por Inactividad</h2>
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-emerald-500/20 text-emerald-400 font-bold">
-                  15 min
-                </span>
-              </div>
-              <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">
-                Tu sesión se cierra automáticamente si no se detecta ninguna interacción física en 15 minutos para proteger tus finanzas.
-              </p>
-            </div>
-          </div>
-
-          <div className="text-[11px] text-zinc-500 font-mono">
-            Estado: Protección activa en tiempo real
-          </div>
         </div>
 
         {/* Card 4: Roadmap & Próximas Integraciones */}

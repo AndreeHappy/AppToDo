@@ -2,8 +2,6 @@
 import type { UserProfile } from '../types';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
-// 15 minutes session inactivity timeout in milliseconds
-const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000;
 
 interface AuthContextType {
   user: { id: string; email: string } | null;
@@ -44,6 +42,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return sessionStorage.getItem(SESSION_EXPIRED_KEY) || null;
   });
 
+  const LAST_ACTIVE_KEY = 'app_portal_last_active_timestamp';
+  const INACTIVITY_TIMEOUT_MS = 10 * 60 * 1000; // 10 minutes strictly for mobile and web
+
   const lastActivityRef = useRef<number>(Date.now());
 
   const clearSessionExpiredNotice = () => {
@@ -59,6 +60,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       clearSessionExpiredNotice();
     }
 
+    localStorage.removeItem(LAST_ACTIVE_KEY);
+
     if (isSupabaseConfigured && supabase) {
       try {
         await supabase.auth.signOut();
@@ -72,30 +75,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setProfile(null);
   }, []);
 
-  // Track User Activity for Inactivity Auto-Logout
+  // Track User Activity for Inactivity Auto-Logout (10 min on mobile & web)
   useEffect(() => {
-    const handleUserActivity = () => {
-      lastActivityRef.current = Date.now();
+    if (!user) return;
+
+    const checkAndLogActivity = () => {
+      const now = Date.now();
+      const lastActive = parseInt(localStorage.getItem(LAST_ACTIVE_KEY) || `${lastActivityRef.current}`, 10);
+      const timeIdle = now - lastActive;
+
+      // If user was idle for >= 10 minutes, immediately log out
+      if (timeIdle >= INACTIVITY_TIMEOUT_MS) {
+        logout('Tu sesión se cerró automáticamente por inactividad tras 10 minutos.');
+        return;
+      }
+
+      // Update activity timestamp in memory and localStorage
+      lastActivityRef.current = now;
+      localStorage.setItem(LAST_ACTIVE_KEY, `${now}`);
     };
 
-    const activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
+    // Initial check on mount
+    checkAndLogActivity();
+
+    // Listen to all touch, click, scroll and visibility events
+    const activityEvents = [
+      'mousemove',
+      'mousedown',
+      'keydown',
+      'touchstart',
+      'touchmove',
+      'scroll',
+      'click',
+      'focus',
+      'visibilitychange',
+      'pageshow'
+    ];
+
+    const onEvent = () => {
+      checkAndLogActivity();
+    };
+
     activityEvents.forEach((evt) => {
-      window.addEventListener(evt, handleUserActivity, { passive: true });
+      window.addEventListener(evt, onEvent, { passive: true });
     });
 
-    // Interval check every 10 seconds
+    // Periodic check every 10 seconds in foreground
     const interval = setInterval(() => {
-      if (user) {
-        const timeIdle = Date.now() - lastActivityRef.current;
-        if (timeIdle >= INACTIVITY_TIMEOUT_MS) {
-          logout('Tu sesión se cerró automáticamente tras 15 minutos de inactividad por seguridad.');
-        }
-      }
+      checkAndLogActivity();
     }, 10000);
 
     return () => {
       activityEvents.forEach((evt) => {
-        window.removeEventListener(evt, handleUserActivity);
+        window.removeEventListener(evt, onEvent);
       });
       clearInterval(interval);
     };

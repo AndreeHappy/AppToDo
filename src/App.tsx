@@ -10,6 +10,8 @@ import { FinanceDashboard } from './components/finance/FinanceDashboard';
 import { ProfileView } from './components/profile/ProfileView';
 import { SettingsView } from './components/settings/SettingsView';
 import { LiquidNavigator } from './components/navigation/LiquidNavigator';
+import { InteractiveBackground } from './components/ui/InteractiveBackground';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { ActiveModule } from './types';
 import {
   House,
@@ -96,23 +98,37 @@ const MainPortal: React.FC = () => {
         </nav>
       )}
 
-      {/* Main Module Content */}
-      <div className="flex flex-1 overflow-hidden">
-        {activeModule === 'hub' ? (
-          <DashboardHub
-            onSelectModule={setActiveModule}
-            onOpenProfile={() => setActiveModule('profile')}
-            onOpenSettings={() => setActiveModule('settings')}
-          />
-        ) : activeModule === 'todo' ? (
-          <ToDoModule />
-        ) : activeModule === 'finance' ? (
-          <FinanceDashboard onBackToHub={() => setActiveModule('hub')} />
-        ) : activeModule === 'profile' ? (
-          <ProfileView onBackToHub={() => setActiveModule('hub')} />
-        ) : (
-          <SettingsView onBackToHub={() => setActiveModule('hub')} />
-        )}
+      {/* Interactive Dot Matrix Canvas Background */}
+      <InteractiveBackground />
+
+      {/* Main Module Content with Smooth Animated Transitions */}
+      <div className="flex flex-1 overflow-hidden relative z-10">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeModule}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.18, ease: 'easeOut' }}
+            className="flex-1 flex flex-col overflow-hidden w-full"
+          >
+            {activeModule === 'hub' ? (
+              <DashboardHub
+                onSelectModule={setActiveModule}
+                onOpenProfile={() => setActiveModule('profile')}
+                onOpenSettings={() => setActiveModule('settings')}
+              />
+            ) : activeModule === 'todo' ? (
+              <ToDoModule />
+            ) : activeModule === 'finance' ? (
+              <FinanceDashboard onBackToHub={() => setActiveModule('hub')} />
+            ) : activeModule === 'profile' ? (
+              <ProfileView onBackToHub={() => setActiveModule('hub')} />
+            ) : (
+              <SettingsView onBackToHub={() => setActiveModule('hub')} />
+            )}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* Liquid Navigator (Floating bottom bar with dynamic + button) */}

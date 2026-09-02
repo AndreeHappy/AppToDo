@@ -83,11 +83,8 @@ export const BalanceCards: React.FC<Props> = ({
             <div className="w-5 h-5 rounded-md bg-indigo-500/15 text-indigo-400 flex items-center justify-center shrink-0">
               <LockKey size={12} weight="bold" />
             </div>
-            <span className="text-zinc-400 truncate">
-              Monto Ahorrado:{' '}
-              <strong className="text-white font-mono font-bold whitespace-nowrap">
-                S/. {summary.protectedReserve.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
-              </strong>
+            <span className="text-zinc-400 font-medium truncate">
+              Fondo de Ahorro Protegido
             </span>
           </div>
 

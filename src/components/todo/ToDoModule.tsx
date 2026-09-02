@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { useTodo } from '../../context/TodoContext';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
@@ -183,41 +184,53 @@ export const ToDoModule: React.FC = () => {
           />
         </div>
 
-        {/* Mobile Dates Drawer */}
-        {isMobileSidebarOpen && (
-          <div className="fixed inset-0 z-40 md:hidden flex">
-            <div
-              onClick={() => setIsMobileSidebarOpen(false)}
-              className="fixed inset-0 bg-black/80 backdrop-blur-xs"
-            />
-            <div className="relative z-50 w-72 bg-[#0f1117] h-full shadow-2xl flex flex-col">
-              <div className="p-3.5 border-b border-white/[0.08] flex items-center justify-between">
-                <span className="text-xs font-bold text-zinc-300">Historial de Fechas</span>
-                <button
-                  onClick={() => setIsMobileSidebarOpen(false)}
-                  className="p-1 rounded-md text-zinc-500 hover:text-white"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-              <div className="flex-1 overflow-y-auto">
-                <SidebarDates
-                  dates={allDates}
-                  selectedDate={selectedDate}
-                  unlockedDates={unlockedDates}
-                  onSelectDate={(d) => {
-                    setSelectedDate(d);
-                    setIsMobileSidebarOpen(false);
-                  }}
-                  onAddCustomDate={() => {
-                    setIsMobileSidebarOpen(false);
-                    setIsDateModalOpen(true);
-                  }}
-                />
-              </div>
+        {/* Mobile Dates Drawer with Spring Physics Animation */}
+        <AnimatePresence>
+          {isMobileSidebarOpen && (
+            <div className="fixed inset-0 z-40 md:hidden flex select-none">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                onClick={() => setIsMobileSidebarOpen(false)}
+                className="fixed inset-0 bg-black/80 backdrop-blur-xs"
+              />
+              <motion.div
+                initial={{ x: -280, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -280, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 340, damping: 30 }}
+                className="relative z-50 w-72 bg-[#0f1117] h-full shadow-2xl flex flex-col border-r border-white/[0.08]"
+              >
+                <div className="p-3.5 border-b border-white/[0.08] flex items-center justify-between">
+                  <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Historial de Fechas</span>
+                  <button
+                    onClick={() => setIsMobileSidebarOpen(false)}
+                    className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto">
+                  <SidebarDates
+                    dates={allDates}
+                    selectedDate={selectedDate}
+                    unlockedDates={unlockedDates}
+                    onSelectDate={(d) => {
+                      setSelectedDate(d);
+                      setIsMobileSidebarOpen(false);
+                    }}
+                    onAddCustomDate={() => {
+                      setIsMobileSidebarOpen(false);
+                      setIsDateModalOpen(true);
+                    }}
+                  />
+                </div>
+              </motion.div>
             </div>
-          </div>
-        )}
+          )}
+        </AnimatePresence>
 
         {/* Content Area */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col gap-4 max-w-7xl mx-auto w-full">
@@ -279,13 +292,21 @@ export const ToDoModule: React.FC = () => {
             </div>
           )}
 
-          {/* Dual Board: Pending & Completed Tasks */}
-          <DualTaskBoard
-            pendingTasks={pendingTasks}
-            doneTasks={doneTasks}
-            onToggleTask={toggleTask}
-            onDeleteTask={(id) => deleteTask(id)}
-          />
+          {/* Dual Board: Pending & Completed Tasks with Smooth Animated Transition */}
+          <motion.div
+            key={`${currentAgendaId}_${selectedDate}`}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="flex-1 flex flex-col"
+          >
+            <DualTaskBoard
+              pendingTasks={pendingTasks}
+              doneTasks={doneTasks}
+              onToggleTask={toggleTask}
+              onDeleteTask={(id) => deleteTask(id)}
+            />
+          </motion.div>
 
           {/* Footer stats & Markdown Log Tools */}
           <FooterActions
