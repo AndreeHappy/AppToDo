@@ -17,6 +17,9 @@ import {
   Clock,
   Hash,
   CaretDown,
+  ShieldWarning,
+  ShieldCheck,
+  PiggyBank,
 } from '@phosphor-icons/react';
 import type { Transaction, TransactionType, FundType } from '../../types';
 import { formatDisplayDate } from '../../utils/date';
@@ -276,19 +279,48 @@ export const TransactionHistory: React.FC<Props> = ({
                       <div className="flex items-center justify-between gap-3">
                         {/* Left Side */}
                         <div className="flex items-center gap-3 min-w-0">
-                          <div
-                            className={`w-10 h-10 shrink-0 rounded-2xl flex items-center justify-center border ${
-                              isIncome
-                                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-                                : 'bg-rose-500/10 border-rose-500/30 text-rose-400'
-                            }`}
-                          >
-                            {isIncome ? (
-                              <ArrowDownLeft size={18} weight="bold" />
-                            ) : (
-                              <ArrowUpRight size={18} weight="bold" />
-                            )}
-                          </div>
+                          {(() => {
+                            const isWithdrawal = tx.category === 'Retiro de Ahorro' || (tx.notes && tx.notes.includes('[RETIRO_AHORRO]'));
+                            const isReplenish = tx.category === 'Reposición de Ahorro' || (tx.notes && tx.notes.includes('[REPOSICION_AHORRO]'));
+                            const isIncrease = tx.category === 'Aumento de Ahorro' || (tx.notes && tx.notes.includes('[AUMENTO_AHORRO]'));
+
+                            if (isWithdrawal) {
+                              return (
+                                <div className="w-10 h-10 shrink-0 rounded-2xl flex items-center justify-center border bg-amber-500/20 border-amber-500/40 text-amber-300 shadow-sm">
+                                  <ShieldWarning size={20} weight="fill" />
+                                </div>
+                              );
+                            }
+                            if (isReplenish) {
+                              return (
+                                <div className="w-10 h-10 shrink-0 rounded-2xl flex items-center justify-center border bg-cyan-500/20 border-cyan-500/40 text-cyan-300 shadow-sm">
+                                  <ShieldCheck size={20} weight="fill" />
+                                </div>
+                              );
+                            }
+                            if (isIncrease) {
+                              return (
+                                <div className="w-10 h-10 shrink-0 rounded-2xl flex items-center justify-center border bg-purple-500/20 border-purple-500/40 text-purple-300 shadow-sm">
+                                  <PiggyBank size={20} weight="fill" />
+                                </div>
+                              );
+                            }
+                            return (
+                              <div
+                                className={`w-10 h-10 shrink-0 rounded-2xl flex items-center justify-center border ${
+                                  isIncome
+                                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                                    : 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                                }`}
+                              >
+                                {isIncome ? (
+                                  <ArrowDownLeft size={18} weight="bold" />
+                                ) : (
+                                  <ArrowUpRight size={18} weight="bold" />
+                                )}
+                              </div>
+                            );
+                          })()}
 
                           <div className="flex flex-col min-w-0">
                             {/* Concept / Detail Title */}
@@ -325,13 +357,31 @@ export const TransactionHistory: React.FC<Props> = ({
 
                         {/* Right Side: Amount */}
                         <div className="flex items-center gap-2 shrink-0 pl-2">
-                          <span
-                            className={`text-sm sm:text-base font-black font-mono whitespace-nowrap ${
-                              isIncome ? 'text-emerald-400' : 'text-rose-400'
-                            }`}
-                          >
-                            {isIncome ? '+' : '-'}S/. {Number(tx.amount).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
-                          </span>
+                          {(() => {
+                            const isWithdrawal = tx.category === 'Retiro de Ahorro' || (tx.notes && tx.notes.includes('[RETIRO_AHORRO]'));
+                            const isReplenish = tx.category === 'Reposición de Ahorro' || (tx.notes && tx.notes.includes('[REPOSICION_AHORRO]'));
+                            const isIncrease = tx.category === 'Aumento de Ahorro' || (tx.notes && tx.notes.includes('[AUMENTO_AHORRO]'));
+
+                            let colorClass = isIncome ? 'text-emerald-400' : 'text-rose-400';
+                            let prefix = isIncome ? '+' : '-';
+
+                            if (isWithdrawal) {
+                              colorClass = 'text-amber-300';
+                              prefix = '+'; // Money transferred into spending fund
+                            } else if (isReplenish) {
+                              colorClass = 'text-cyan-300';
+                              prefix = '-'; // Money transferred back to reserve
+                            } else if (isIncrease) {
+                              colorClass = 'text-purple-300';
+                              prefix = '-';
+                            }
+
+                            return (
+                              <span className={`text-sm sm:text-base font-black font-mono whitespace-nowrap ${colorClass}`}>
+                                {prefix}S/. {Number(tx.amount).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+                              </span>
+                            );
+                          })()}
                           <CaretDown
                             size={14}
                             className={`text-zinc-500 transition-transform duration-200 ${isExpanded ? 'rotate-180 text-white' : ''}`}

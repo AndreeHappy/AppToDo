@@ -16,12 +16,14 @@ interface Props {
   summary: FinanceSummary;
   baseReserve: number;
   onOpenReserveSettings: () => void;
+  onOpenReplenishReserve?: () => void;
 }
 
 export const BalanceCards: React.FC<Props> = ({
   summary,
   baseReserve,
   onOpenReserveSettings,
+  onOpenReplenishReserve,
 }) => {
   const isReserveIntact = summary.protectedReserve >= baseReserve;
   const isPhysicalNegative = summary.physicalBalance <= 0;
@@ -88,14 +90,25 @@ export const BalanceCards: React.FC<Props> = ({
             </span>
           </div>
 
-          <button
-            onClick={onOpenReserveSettings}
-            title="Ajustar monto ahorrado"
-            className="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-zinc-300 hover:text-white flex items-center gap-1 transition-colors shrink-0"
-          >
-            <span>Base S/. {baseReserve.toLocaleString('es-PE')}</span>
-            <PencilSimple size={12} />
-          </button>
+          {summary.isReserveDeficit ? (
+            <button
+              onClick={onOpenReplenishReserve}
+              title="Reponer dinero retirado del fondo de ahorro"
+              className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/50 text-amber-300 text-xs font-black flex items-center gap-1.5 transition-all shadow-md shrink-0 active:scale-95"
+            >
+              <WarningCircle size={14} weight="fill" className="text-amber-400 animate-pulse" />
+              <span>Reponer S/. {summary.reserveDeficit.toLocaleString('es-PE', { minimumFractionDigits: 2 })}</span>
+            </button>
+          ) : (
+            <button
+              onClick={onOpenReserveSettings}
+              title="Ajustar monto ahorrado"
+              className="px-2.5 py-1 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-zinc-300 hover:text-white flex items-center gap-1 transition-colors shrink-0"
+            >
+              <span>Base S/. {baseReserve.toLocaleString('es-PE')}</span>
+              <PencilSimple size={12} />
+            </button>
+          )}
         </div>
       </motion.div>
 

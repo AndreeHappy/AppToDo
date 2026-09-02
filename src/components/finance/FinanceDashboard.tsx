@@ -1,8 +1,8 @@
 ﻿import React, { useState, useEffect } from 'react';
 import {
-  Plus,
   ShieldWarning,
   Bank,
+  PiggyBank,
 } from '@phosphor-icons/react';
 import type {
   TransactionType,
@@ -16,6 +16,7 @@ import { TransactionFormModal } from './TransactionFormModal';
 import { EmergencyWithdrawalModal } from './EmergencyWithdrawalModal';
 import { EmergencyLogModal } from './EmergencyLogModal';
 import { ReserveSettingsModal } from './ReserveSettingsModal';
+import { SavingsManagementModal, type SavingsModalMode } from './SavingsManagementModal';
 
 interface Props {
   onBackToHub?: () => void;
@@ -40,6 +41,8 @@ export const FinanceDashboard: React.FC<Props> = () => {
   const [isEmergencyModalOpen, setIsEmergencyModalOpen] = useState(false);
   const [isLogModalOpen, setIsLogModalOpen] = useState(false);
   const [isReserveModalOpen, setIsReserveModalOpen] = useState(false);
+  const [isSavingsModalOpen, setIsSavingsModalOpen] = useState(false);
+  const [savingsModalMode, setSavingsModalMode] = useState<SavingsModalMode>('withdraw');
 
   useEffect(() => {
     const handleOpen = () => setIsFormModalOpen(true);
@@ -118,13 +121,29 @@ export const FinanceDashboard: React.FC<Props> = () => {
             </button>
           )}
 
-          {/* Desktop Only Button (Liquid Navigator handles mobile) */}
+          {/* Savings Management Buttons (Replaces obsolete Registrar Movimiento) */}
           <button
-            onClick={() => setIsFormModalOpen(true)}
-            className="hidden md:flex px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold tracking-wide shadow-md shadow-emerald-600/20 items-center gap-1.5 transition-all active:scale-[0.98]"
+            onClick={() => {
+              setSavingsModalMode('withdraw');
+              setIsSavingsModalOpen(true);
+            }}
+            title="Retirar dinero de la bolsa de ahorro protegido"
+            className="px-3 sm:px-3.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/35 text-amber-300 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-[0.98]"
           >
-            <Plus size={14} weight="bold" />
-            <span>Registrar Movimiento</span>
+            <ShieldWarning size={15} weight="bold" />
+            <span>Sacar Monto de Ahorro</span>
+          </button>
+
+          <button
+            onClick={() => {
+              setSavingsModalMode('increase');
+              setIsSavingsModalOpen(true);
+            }}
+            title="Aumentar la base de la bolsa de ahorro"
+            className="hidden sm:flex px-3 sm:px-3.5 py-1.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/35 text-indigo-300 text-xs font-bold items-center gap-1.5 transition-all active:scale-[0.98]"
+          >
+            <PiggyBank size={15} weight="bold" />
+            <span>Aumentar Bolsa</span>
           </button>
         </div>
       </div>
@@ -134,6 +153,10 @@ export const FinanceDashboard: React.FC<Props> = () => {
         summary={summary}
         baseReserve={baseReserve}
         onOpenReserveSettings={() => setIsReserveModalOpen(true)}
+        onOpenReplenishReserve={() => {
+          setSavingsModalMode('replenish');
+          setIsSavingsModalOpen(true);
+        }}
       />
 
       {/* Transaction Ledger & Pending Expenses */}
@@ -176,6 +199,12 @@ export const FinanceDashboard: React.FC<Props> = () => {
         isOpen={isLogModalOpen}
         withdrawals={emergencyLogs}
         onClose={() => setIsLogModalOpen(false)}
+      />
+
+      <SavingsManagementModal
+        isOpen={isSavingsModalOpen}
+        initialMode={savingsModalMode}
+        onClose={() => setIsSavingsModalOpen(false)}
       />
 
       <ReserveSettingsModal

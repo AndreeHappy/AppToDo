@@ -88,6 +88,9 @@ export interface FinanceSummary {
   physicalBalance: number;
   digitalBalance: number;
   protectedReserve: number;
+  currentReserve: number;
+  reserveDeficit: number;
+  isReserveDeficit: boolean;
   freeSpendingBalance: number;
   freePhysicalBalance: number;
   freeDigitalBalance: number;

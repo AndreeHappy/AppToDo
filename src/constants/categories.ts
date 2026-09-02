@@ -37,6 +37,9 @@ export const ALL_CATEGORIES: string[] = [
   'Educación / Tesis',
   'Salud / Farmacia',
   'Otros Gastos',
+  'Retiro de Ahorro',
+  'Reposición de Ahorro',
+  'Aumento de Ahorro',
 ];
 
 export const CATEGORY_STYLES: Record<string, { color: string; bg: string; border: string }> = {
@@ -54,4 +57,9 @@ export const CATEGORY_STYLES: Record<string, { color: string; bg: string; border
   'Educación / Tesis': { color: 'text-sky-400', bg: 'bg-sky-500/10', border: 'border-sky-500/30' },
   'Salud / Farmacia': { color: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/30' },
   'Otros Gastos': { color: 'text-zinc-400', bg: 'bg-zinc-800', border: 'border-zinc-700' },
+
+  // Special Savings / Reserve Categories (Distinct High-Contrast Alerting Colors)
+  'Retiro de Ahorro': { color: 'text-amber-300', bg: 'bg-amber-500/20', border: 'border-amber-500/50' },
+  'Reposición de Ahorro': { color: 'text-cyan-300', bg: 'bg-cyan-500/20', border: 'border-cyan-500/50' },
+  'Aumento de Ahorro': { color: 'text-purple-300', bg: 'bg-purple-500/20', border: 'border-purple-500/50' },
 };

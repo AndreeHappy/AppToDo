@@ -45,6 +45,9 @@ interface FinanceContextType {
   cancelPending: (id: string) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
   refreshFinanceData: () => Promise<void>;
+  withdrawFromSavings: (amount: number, fundType: FundType, reason: string) => Promise<void>;
+  replenishSavings: (amount: number, fundType: FundType) => Promise<void>;
+  increaseSavingsBase: (amount: number, fundType: FundType) => Promise<void>;
 }
 
 const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
@@ -65,7 +68,7 @@ const generateUuid = (): string => {
 };
 
 export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, profile } = useAuth();
+  const { user, profile, updateProtectedReserve } = useAuth();
   const baseReserve = profile?.protected_reserve_base ?? 950.00;
 
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
@@ -172,7 +175,8 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
           )
           .subscribe();
 
-        return () => {
+
+  return () => {
           if (supabase) supabase.removeChannel(channel);
         };
       }
@@ -236,7 +240,8 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     checkScheduledExpenses();
     const interval = setInterval(checkScheduledExpenses, 15000);
-    return () => clearInterval(interval);
+
+  return () => clearInterval(interval);
   }, [transactions, user]);
 
   const pendingExpenses = useMemo(() => {
@@ -276,8 +281,25 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const physicalBalance = incPhysical - expPhysical;
     const digitalBalance = incDigital - expDigital;
 
-    const protectedReserve = Math.max(0, Math.min(totalBalance, baseReserve));
-    const freeSpendingBalance = Math.max(0, totalBalance - baseReserve);
+    // Calculate total withdrawn from savings and total replenished
+    let totalWithdrawnFromReserve = 0;
+    let totalReplenishedToReserve = 0;
+
+    transactions.forEach((tx) => {
+      const amt = Number(tx.amount) || 0;
+      if (tx.category === 'Retiro de Ahorro' || (tx.notes && tx.notes.includes('[RETIRO_AHORRO]'))) {
+        totalWithdrawnFromReserve += amt;
+      } else if (tx.category === 'Reposición de Ahorro' || (tx.notes && tx.notes.includes('[REPOSICION_AHORRO]'))) {
+        totalReplenishedToReserve += amt;
+      }
+    });
+
+    const reserveDeficit = Math.max(0, totalWithdrawnFromReserve - totalReplenishedToReserve);
+    const currentReserve = Math.max(0, baseReserve - reserveDeficit);
+    const isReserveDeficit = reserveDeficit > 0;
+
+    const protectedReserve = currentReserve;
+    const freeSpendingBalance = Math.max(0, totalBalance - currentReserve);
 
     const freePhysicalBalance = physicalBalance;
     const freeDigitalBalance = digitalBalance - protectedReserve;
@@ -290,6 +312,9 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       physicalBalance,
       digitalBalance,
       protectedReserve,
+      currentReserve,
+      reserveDeficit,
+      isReserveDeficit,
       freeSpendingBalance,
       freePhysicalBalance,
       freeDigitalBalance,
@@ -515,6 +540,46 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   };
 
+  const withdrawFromSavings = async (amount: number, fundType: FundType, reason: string) => {
+    const todayStr = getTodayString();
+    await addTransaction({
+      type: 'income',
+      fundType,
+      amount,
+      category: 'Retiro de Ahorro',
+      counterpartyConcept: `⚠️ Retiro de Bolsa de Ahorro - ${reason}`,
+      notes: `[RETIRO_AHORRO] ${reason}`,
+      date: todayStr,
+    });
+  };
+
+  const replenishSavings = async (amount: number, fundType: FundType) => {
+    const todayStr = getTodayString();
+    await addTransaction({
+      type: 'expense',
+      fundType,
+      amount,
+      category: 'Reposición de Ahorro',
+      counterpartyConcept: '🛡️ Reposición al Fondo de Ahorro Protegido',
+      notes: '[REPOSICION_AHORRO] Reposición al fondo protegido',
+      date: todayStr,
+    });
+  };
+
+  const increaseSavingsBase = async (amount: number, fundType: FundType) => {
+    const todayStr = getTodayString();
+    const newBase = baseReserve + amount;
+    await updateProtectedReserve(newBase);
+    await addTransaction({
+      type: 'expense',
+      fundType,
+      amount,
+      category: 'Aumento de Ahorro',
+      counterpartyConcept: `📈 Aumento de Bolsa de Ahorro (Nueva base: S/. ${newBase.toLocaleString('es-PE')})`,
+      notes: `[AUMENTO_AHORRO] Incremento permanente de la bolsa de ahorro`,
+      date: todayStr,
+    });
+  };
   return (
     <FinanceContext.Provider
       value={{
@@ -530,6 +595,9 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         cancelPending,
         deleteTransaction,
         refreshFinanceData: fetchFinanceData,
+        withdrawFromSavings,
+        replenishSavings,
+        increaseSavingsBase,
       }}
     >
       {children}
