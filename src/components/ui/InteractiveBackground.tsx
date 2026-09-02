@@ -1,23 +1,40 @@
 ﻿import React, { useEffect, useRef, useState } from 'react';
 
 export interface BgSettings {
-  mode: 'dots' | 'aurora' | 'minimal';
-  blur: number; // in px: 0, 8, 16, 24
-  opacity: number; // in percentage: 20, 40, 60, 80, 100
+  mode: 'dots' | 'custom_image' | 'aurora' | 'minimal';
+  blur: number; // in px: 0 to 30
+  opacity: number; // in percentage: 10 to 100
+  customImageUrl?: string | null;
 }
 
 export const DEFAULT_BG_SETTINGS: BgSettings = {
   mode: 'dots',
   blur: 0,
-  opacity: 60,
+  opacity: 80,
+  customImageUrl: null,
 };
 
-export const BG_SETTINGS_STORAGE_KEY = 'app_portal_bg_settings_v1';
+export const BG_SETTINGS_STORAGE_KEY = 'app_portal_bg_settings_v2';
+export const CUSTOM_IMAGE_STORAGE_KEY = 'app_portal_custom_bg_img_v2';
 
 export const getStoredBgSettings = (): BgSettings => {
   try {
     const saved = localStorage.getItem(BG_SETTINGS_STORAGE_KEY);
-    if (saved) return { ...DEFAULT_BG_SETTINGS, ...JSON.parse(saved) };
+    const savedImg = localStorage.getItem(CUSTOM_IMAGE_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return {
+        ...DEFAULT_BG_SETTINGS,
+        ...parsed,
+        customImageUrl: savedImg || parsed.customImageUrl || null,
+      };
+    } else if (savedImg) {
+      return {
+        ...DEFAULT_BG_SETTINGS,
+        mode: 'custom_image',
+        customImageUrl: savedImg,
+      };
+    }
   } catch {
     // fallback
   }
@@ -25,7 +42,24 @@ export const getStoredBgSettings = (): BgSettings => {
 };
 
 export const saveStoredBgSettings = (settings: BgSettings) => {
-  localStorage.setItem(BG_SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+  if (settings.customImageUrl) {
+    try {
+      localStorage.setItem(CUSTOM_IMAGE_STORAGE_KEY, settings.customImageUrl);
+    } catch (e) {
+      console.warn('Could not save custom image to localStorage (quota exceeded):', e);
+    }
+  } else {
+    localStorage.removeItem(CUSTOM_IMAGE_STORAGE_KEY);
+  }
+
+  // Save settings without potentially huge image string in main settings object
+  const settingsToStore = {
+    mode: settings.mode,
+    blur: settings.blur,
+    opacity: settings.opacity,
+    hasCustomImage: !!settings.customImageUrl,
+  };
+  localStorage.setItem(BG_SETTINGS_STORAGE_KEY, JSON.stringify(settingsToStore));
   window.dispatchEvent(new Event('app:bg-settings-changed'));
 };
 
@@ -42,8 +76,11 @@ export const InteractiveBackground: React.FC = () => {
     return () => window.removeEventListener('app:bg-settings-changed', handleSettingsChange);
   }, []);
 
+  const hasCustomImage = settings.mode === 'custom_image' && !!settings.customImageUrl;
+
   useEffect(() => {
-    if (settings.mode === 'minimal') return;
+    // If using custom image or minimal mode, skip canvas rendering
+    if (hasCustomImage || settings.mode === 'minimal') return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -62,7 +99,6 @@ export const InteractiveBackground: React.FC = () => {
       radius: 140,
     };
 
-    // Handle resize
     const handleResize = () => {
       if (!canvas) return;
       width = canvas.width = window.innerWidth;
@@ -86,17 +122,16 @@ export const InteractiveBackground: React.FC = () => {
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     window.addEventListener('touchmove', handleTouchMove, { passive: true });
 
-    // Dot Grid Construction (22px to 25px spacing)
+    // Dot Grid Construction (24px separation)
     const SPACING = 24;
     interface Dot {
-      ox: number; // original X
-      oy: number; // original Y
+      ox: number;
+      oy: number;
       x: number;
       y: number;
       vx: number;
       vy: number;
       baseRadius: number;
-      phase: number;
     }
 
     let dots: Dot[] = [];
@@ -120,7 +155,6 @@ export const InteractiveBackground: React.FC = () => {
             vx: 0,
             vy: 0,
             baseRadius: 1.1,
-            phase: Math.random() * Math.PI * 2,
           });
         }
       }
@@ -130,11 +164,9 @@ export const InteractiveBackground: React.FC = () => {
 
     let time = 0;
 
-    // Animation Render Loop
     const render = () => {
       time += 0.02;
 
-      // Smooth mouse interpolation
       mouse.x += (mouse.targetX - mouse.x) * 0.15;
       mouse.y += (mouse.targetY - mouse.y) * 0.15;
 
@@ -150,7 +182,7 @@ export const InteractiveBackground: React.FC = () => {
           height * 0.4,
           width * 0.6
         );
-        grad1.addColorStop(0, 'rgba(99, 102, 241, 0.15)');
+        grad1.addColorStop(0, 'rgba(99, 102, 241, 0.18)');
         grad1.addColorStop(1, 'rgba(99, 102, 241, 0)');
         ctx.fillStyle = grad1;
         ctx.fillRect(0, 0, width, height);
@@ -163,7 +195,7 @@ export const InteractiveBackground: React.FC = () => {
           height * 0.6,
           width * 0.5
         );
-        grad2.addColorStop(0, 'rgba(16, 185, 129, 0.1)');
+        grad2.addColorStop(0, 'rgba(16, 185, 129, 0.12)');
         grad2.addColorStop(1, 'rgba(16, 185, 129, 0)');
         ctx.fillStyle = grad2;
         ctx.fillRect(0, 0, width, height);
@@ -172,15 +204,15 @@ export const InteractiveBackground: React.FC = () => {
         return;
       }
 
-      // Interactive Dot Matrix Mode (Separation ~24px, follows mouse)
+      // Interactive Dot Matrix Mode
       const maxDist = mouse.radius;
       const opacityMultiplier = settings.opacity / 100;
 
-      // Draw subtle mouse ambient glow
+      // Mouse ambient glow
       if (mouse.x > -500) {
         const mouseGlow = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, maxDist * 1.5);
-        mouseGlow.addColorStop(0, `rgba(99, 102, 241, ${0.12 * opacityMultiplier})`);
-        mouseGlow.addColorStop(0.5, `rgba(16, 185, 129, ${0.05 * opacityMultiplier})`);
+        mouseGlow.addColorStop(0, `rgba(99, 102, 241, ${0.14 * opacityMultiplier})`);
+        mouseGlow.addColorStop(0.5, `rgba(16, 185, 129, ${0.06 * opacityMultiplier})`);
         mouseGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
         ctx.fillStyle = mouseGlow;
         ctx.beginPath();
@@ -190,45 +222,36 @@ export const InteractiveBackground: React.FC = () => {
 
       for (let i = 0; i < dots.length; i++) {
         const d = dots[i];
-
-        // Ambient gentle wave
         const wave = Math.sin(time + d.ox * 0.015 + d.oy * 0.015) * 1.2;
 
-        // Mouse distance
         const dx = mouse.x - d.x;
         const dy = mouse.y - d.y;
         const dist = Math.sqrt(dx * dx + dy * dy);
 
         if (dist < maxDist) {
-          // Dots gently react and illuminate near mouse
           const force = (1 - dist / maxDist) * 16;
           const angle = Math.atan2(dy, dx);
-          // Elastic spring towards mouse movement
           d.vx -= Math.cos(angle) * force * 0.2;
           d.vy -= Math.sin(angle) * force * 0.2;
         }
 
-        // Return to home position with spring physics
         d.vx += (d.ox - d.x) * 0.08;
         d.vy += (d.oy + wave - d.y) * 0.08;
 
-        // Damping
         d.vx *= 0.78;
         d.vy *= 0.78;
 
         d.x += d.vx;
         d.y += d.vy;
 
-        // Color and size calculation based on proximity to mouse
-        let alpha = 0.18 * opacityMultiplier;
+        let alpha = 0.22 * opacityMultiplier;
         let radius = d.baseRadius;
         let fillStyle = `rgba(161, 161, 170, ${alpha})`;
 
         if (dist < maxDist) {
           const proximity = 1 - dist / maxDist;
-          alpha = (0.2 + proximity * 0.7) * opacityMultiplier;
+          alpha = (0.25 + proximity * 0.75) * opacityMultiplier;
           radius = d.baseRadius + proximity * 1.8;
-          // Gradient between emerald and indigo glow
           if (proximity > 0.6) {
             fillStyle = `rgba(129, 140, 248, ${alpha})`;
           } else {
@@ -253,10 +276,33 @@ export const InteractiveBackground: React.FC = () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('touchmove', handleTouchMove);
     };
-  }, [settings]);
+  }, [settings, hasCustomImage]);
+
+  // 1. If Custom Image is enabled, render the user's uploaded background
+  if (hasCustomImage && settings.customImageUrl) {
+    return (
+      <div
+        className="fixed inset-0 pointer-events-none z-0 overflow-hidden select-none"
+        aria-hidden="true"
+      >
+        <div
+          className="absolute inset-0 bg-cover bg-center transition-[filter,opacity] duration-300"
+          style={{
+            backgroundImage: `url(${settings.customImageUrl})`,
+            filter: settings.blur > 0 ? `blur(${settings.blur}px)` : 'none',
+            opacity: settings.opacity / 100,
+            transform: settings.blur > 0 ? 'scale(1.08)' : 'scale(1)',
+          }}
+        />
+        {/* Subtle dark overlay for contrast */}
+        <div className="absolute inset-0 bg-black/40" />
+      </div>
+    );
+  }
 
   if (settings.mode === 'minimal') return null;
 
+  // 2. Interactive Canvas Dot Matrix / Aurora
   return (
     <canvas
       ref={canvasRef}

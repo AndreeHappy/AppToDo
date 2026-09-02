@@ -75,73 +75,113 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setProfile(null);
   }, []);
 
+  // 1. Record user activity ONLY on actual user interaction
+  const recordActivity = useCallback(() => {
+    const now = Date.now();
+    lastActivityRef.current = now;
+    localStorage.setItem(LAST_ACTIVE_KEY, `${now}`);
+  }, []);
+
+  // 2. Pure check function - NEVER resets the timestamp
+  const checkInactivity = useCallback((): boolean => {
+    const saved = localStorage.getItem(LAST_ACTIVE_KEY);
+    if (!saved) return false;
+    const lastActive = parseInt(saved, 10);
+    if (isNaN(lastActive) || lastActive <= 0) return false;
+
+    const timeIdle = Date.now() - lastActive;
+    if (timeIdle >= INACTIVITY_TIMEOUT_MS) {
+      logout('Tu sesión se cerró automáticamente por inactividad tras 10 minutos.');
+      return true;
+    }
+    return false;
+  }, [logout]);
+
   // Track User Activity for Inactivity Auto-Logout (10 min on mobile & web)
   useEffect(() => {
     if (!user) return;
 
-    const checkAndLogActivity = () => {
-      const now = Date.now();
-      const lastActive = parseInt(localStorage.getItem(LAST_ACTIVE_KEY) || `${lastActivityRef.current}`, 10);
-      const timeIdle = now - lastActive;
+    // Check inactivity immediately
+    if (checkInactivity()) return;
 
-      // If user was idle for >= 10 minutes, immediately log out
-      if (timeIdle >= INACTIVITY_TIMEOUT_MS) {
-        logout('Tu sesión se cerró automáticamente por inactividad tras 10 minutos.');
-        return;
-      }
-
-      // Update activity timestamp in memory and localStorage
-      lastActivityRef.current = now;
-      localStorage.setItem(LAST_ACTIVE_KEY, `${now}`);
-    };
-
-    // Initial check on mount
-    checkAndLogActivity();
-
-    // Listen to all touch, click, scroll and visibility events
-    const activityEvents = [
-      'mousemove',
+    // User interaction events that refresh the active timer
+    const interactionEvents = [
       'mousedown',
       'keydown',
       'touchstart',
       'touchmove',
       'scroll',
       'click',
-      'focus',
-      'visibilitychange',
-      'pageshow'
     ];
 
-    const onEvent = () => {
-      checkAndLogActivity();
+    const handleUserInteraction = () => {
+      // First verify if already expired
+      if (checkInactivity()) return;
+      recordActivity();
     };
 
-    activityEvents.forEach((evt) => {
-      window.addEventListener(evt, onEvent, { passive: true });
+    interactionEvents.forEach((evt) => {
+      window.addEventListener(evt, handleUserInteraction, { passive: true });
     });
 
-    // Periodic check every 10 seconds in foreground
+    // When tab becomes visible again or gains focus, check if 10 min elapsed
+    const handleVisibility = () => {
+      checkInactivity();
+    };
+    window.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleVisibility);
+    window.addEventListener('pageshow', handleVisibility);
+
+    // Periodic check every 5 seconds (ONLY checks, never updates active timestamp)
     const interval = setInterval(() => {
-      checkAndLogActivity();
-    }, 10000);
+      checkInactivity();
+    }, 5000);
 
     return () => {
-      activityEvents.forEach((evt) => {
-        window.removeEventListener(evt, onEvent);
+      interactionEvents.forEach((evt) => {
+        window.removeEventListener(evt, handleUserInteraction);
       });
+      window.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleVisibility);
+      window.removeEventListener('pageshow', handleVisibility);
       clearInterval(interval);
     };
-  }, [user, logout]);
+  }, [user, checkInactivity, recordActivity]);
 
-  // Initialize auth state
+  // Initialize auth state with strict inactivity check
   useEffect(() => {
     async function initAuth() {
+      // Check if user was previously inactive for > 10 minutes BEFORE restoring session
+      const savedActive = localStorage.getItem(LAST_ACTIVE_KEY);
+      if (savedActive) {
+        const lastActiveTime = parseInt(savedActive, 10);
+        if (!isNaN(lastActiveTime) && Date.now() - lastActiveTime >= INACTIVITY_TIMEOUT_MS) {
+          // Session expired while user was away / tab was closed!
+          localStorage.removeItem(LAST_ACTIVE_KEY);
+          localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
+          sessionStorage.setItem(SESSION_EXPIRED_KEY, 'Tu sesión se cerró automáticamente por inactividad tras 10 minutos.');
+          setSessionExpiredNotice('Tu sesión se cerró automáticamente por inactividad tras 10 minutos.');
+          if (isSupabaseConfigured && supabase) {
+            try {
+              await supabase.auth.signOut();
+            } catch {
+              // ignore
+            }
+          }
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
+          return;
+        }
+      }
+
       if (isSupabaseConfigured && supabase) {
         try {
           const { data: { session } } = await supabase.auth.getSession();
           if (session?.user) {
             setUser({ id: session.user.id, email: session.user.email || '' });
             await fetchProfile(session.user.id, session.user.email || '');
+            recordActivity();
           }
         } catch (err) {
           console.error('Error fetching Supabase session:', err);
@@ -157,6 +197,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (session?.user) {
             setUser({ id: session.user.id, email: session.user.email || '' });
             await fetchProfile(session.user.id, session.user.email || '');
+            recordActivity();
           } else {
             setUser(null);
             setProfile(null);
@@ -172,6 +213,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const parsed = JSON.parse(saved);
             setUser({ id: parsed.id, email: parsed.email });
             setProfile(parsed);
+            recordActivity();
           } catch {
             // ignored
           }
@@ -181,7 +223,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     initAuth();
-  }, []);
+  }, [recordActivity]);
 
   const fetchProfile = async (userId: string, email: string) => {
     if (!supabase) return;
@@ -217,7 +259,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data.user) {
         setUser({ id: data.user.id, email: data.user.email || '' });
         await fetchProfile(data.user.id, data.user.email || '');
-        lastActivityRef.current = Date.now();
+        recordActivity();
       }
       return {};
     } else {
@@ -231,7 +273,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(mockUser));
       setUser({ id: mockUser.id, email: mockUser.email });
       setProfile(mockUser);
-      lastActivityRef.current = Date.now();
+      recordActivity();
       return {};
     }
   };
@@ -263,7 +305,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data.user) {
         setUser({ id: data.user.id, email: data.user.email || '' });
         await fetchProfile(data.user.id, data.user.email || '');
-        lastActivityRef.current = Date.now();
+        recordActivity();
       }
       return {};
     } else {
@@ -277,7 +319,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(mockUser));
       setUser({ id: mockUser.id, email: mockUser.email });
       setProfile(mockUser);
-      lastActivityRef.current = Date.now();
+      recordActivity();
       return {};
     }
   };

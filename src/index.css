@@ -163,3 +163,148 @@ html.light .bg-amber-500 * {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(120, 120, 140, 0.45);
 }
+/* =========================================================
+   THEME STYLES: GLASSMORPHISM & MINIMALIST
+   ========================================================= */
+
+/* Glassmorphism Dark */
+html.theme-glassmorphism.dark .bg-\[\#11131a\],
+html.theme-glassmorphism.dark .bg-\[\#0f1117\],
+html.theme-glassmorphism.dark .bg-\[\#12141e\],
+html.theme-glassmorphism.dark .bg-\[\#1e212d\] {
+  background-color: rgba(17, 19, 26, 0.72) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45) !important;
+}
+
+html.theme-glassmorphism.dark .bg-zinc-900,
+html.theme-glassmorphism.dark .bg-zinc-900\/80,
+html.theme-glassmorphism.dark .bg-zinc-900\/90,
+html.theme-glassmorphism.dark .bg-zinc-900\/60 {
+  background-color: rgba(24, 24, 27, 0.55) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Glassmorphism Light (White Frosted Glass) */
+html.theme-glassmorphism.light .bg-\[\#11131a\],
+html.theme-glassmorphism.light .bg-\[\#0f1117\],
+html.theme-glassmorphism.light .bg-\[\#12141e\],
+html.theme-glassmorphism.light .bg-\[\#1e212d\] {
+  background-color: rgba(255, 255, 255, 0.78) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 10px 35px 0 rgba(31, 38, 135, 0.08) !important;
+}
+
+html.theme-glassmorphism.light .bg-zinc-900,
+html.theme-glassmorphism.light .bg-zinc-900\/80,
+html.theme-glassmorphism.light .bg-zinc-900\/90 {
+  background-color: rgba(241, 245, 249, 0.65) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Minimalist Dark */
+html.theme-minimalist.dark .bg-\[\#11131a\],
+html.theme-minimalist.dark .bg-\[\#0f1117\] {
+  background-color: #10121a !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+  box-shadow: none !important;
+}
+
+/* Minimalist Light */
+html.theme-minimalist.light .bg-\[\#11131a\],
+html.theme-minimalist.light .bg-\[\#0f1117\] {
+  background-color: #ffffff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+/* =========================================================
+   HIGH-CONTRAST ACCENT COLORS FOR LIGHT / WHITE MODE
+   (Prevents green, blue, yellow and pastels from disappearing)
+   ========================================================= */
+
+/* Rich Dark Green (Forest / Deep Emerald) */
+html.light .text-emerald-400,
+html.light .text-emerald-300,
+html.light .text-emerald-500,
+html.light .text-teal-400,
+html.light .text-teal-500 {
+  color: #065f46 !important; /* Emerald-800: Rich dark high contrast green */
+}
+
+/* Rich Dark Blue / Sapphire (Digital / Bancos) */
+html.light .text-blue-400,
+html.light .text-blue-300,
+html.light .text-blue-500,
+html.light .text-cyan-400,
+html.light .text-cyan-500,
+html.light .text-sky-400,
+html.light .text-sky-500 {
+  color: #1e40af !important; /* Blue-800: Deep sapphire blue */
+}
+
+/* Rich Dark Amber / Gold (Medium Priority / Pending) */
+html.light .text-amber-400,
+html.light .text-amber-300,
+html.light .text-amber-500,
+html.light .text-yellow-400,
+html.light .text-yellow-500,
+html.light .text-orange-400 {
+  color: #92400e !important; /* Amber-800: Deep warm readable amber */
+}
+
+/* Rich Dark Rose / Crimson (Expenses / High Priority) */
+html.light .text-rose-400,
+html.light .text-rose-300,
+html.light .text-rose-500 {
+  color: #9f1239 !important; /* Rose-800: Deep legible crimson */
+}
+
+/* Rich Dark Indigo */
+html.light .text-indigo-400,
+html.light .text-indigo-300,
+html.light .text-indigo-500,
+html.light .text-purple-400 {
+  color: #3730a3 !important; /* Indigo-800 */
+}
+
+/* Badge Backgrounds in Light Mode */
+html.light .bg-emerald-500\/10,
+html.light .bg-emerald-500\/15,
+html.light .bg-emerald-500\/20 {
+  background-color: rgba(6, 95, 70, 0.1) !important;
+  border-color: rgba(6, 95, 70, 0.25) !important;
+}
+
+html.light .bg-blue-500\/10,
+html.light .bg-blue-500\/15,
+html.light .bg-blue-500\/20 {
+  background-color: rgba(30, 64, 175, 0.1) !important;
+  border-color: rgba(30, 64, 175, 0.25) !important;
+}
+
+html.light .bg-amber-500\/10,
+html.light .bg-amber-500\/15,
+html.light .bg-amber-500\/20 {
+  background-color: rgba(146, 64, 14, 0.1) !important;
+  border-color: rgba(146, 64, 14, 0.25) !important;
+}
+
+html.light .bg-rose-500\/10,
+html.light .bg-rose-500\/15,
+html.light .bg-rose-500\/20 {
+  background-color: rgba(159, 18, 57, 0.1) !important;
+  border-color: rgba(159, 18, 57, 0.25) !important;
+}
