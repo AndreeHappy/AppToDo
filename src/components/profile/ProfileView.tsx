@@ -6,12 +6,12 @@ import {
   CheckCircle,
   WarningCircle,
   FloppyDisk,
-  ShieldCheck,
   Phone,
   Calendar,
   GlobeHemisphereWest,
   Briefcase,
   EnvelopeSimple,
+  Camera,
   House,
 } from '@phosphor-icons/react';
 import { useAuth } from '../../context/AuthContext';
@@ -29,6 +29,7 @@ export const ProfileView: React.FC<Props> = ({ onBackToHub }) => {
   const [country, setCountry] = useState('');
   const [occupation, setOccupation] = useState('');
   const [reserveBase, setReserveBase] = useState('950.00');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -41,9 +42,46 @@ export const ProfileView: React.FC<Props> = ({ onBackToHub }) => {
       setCountry(profile.country || 'Perú');
       setOccupation(profile.occupation || '');
       setReserveBase(profile.protected_reserve_base ? profile.protected_reserve_base.toFixed(2) : '950.00');
+      setAvatarUrl(profile.avatar_url || null);
     }
   }, [profile]);
 
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      if (!result) return;
+
+      const img = new Image();
+      img.onload = () => {
+        const size = 300;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          const minDim = Math.min(img.width, img.height);
+          const sx = (img.width - minDim) / 2;
+          const sy = (img.height - minDim) / 2;
+          ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, size, size);
+          const compressed = canvas.toDataURL('image/jpeg', 0.88);
+          setAvatarUrl(compressed);
+          updateProfile({ avatarUrl: compressed });
+          setSuccessMsg('¡Foto de perfil actualizada con éxito!');
+        }
+      };
+      img.src = result;
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveAvatar = () => {
+    setAvatarUrl(null);
+    updateProfile({ avatarUrl: '' });
+  };
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
@@ -113,27 +151,54 @@ export const ProfileView: React.FC<Props> = ({ onBackToHub }) => {
         </button>
       </div>
 
-      {/* Avatar & Verification Banner */}
+      {/* Avatar & User Details (With Photo Upload, without PRO or Sync badge) */}
       <div className="p-5 rounded-3xl bg-[#11131a] border border-white/[0.08] shadow-xl flex flex-col sm:flex-row items-center gap-5">
-        <div className="w-18 h-18 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center text-white font-black text-2xl shadow-lg tracking-wider shrink-0">
-          {initials}
+        <div className="relative group shrink-0">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt="Foto de perfil"
+              className="w-20 h-20 rounded-2xl object-cover border-2 border-indigo-500/40 shadow-lg"
+            />
+          ) : (
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 flex items-center justify-center text-white font-black text-2xl shadow-lg tracking-wider">
+              {initials}
+            </div>
+          )}
+
+          <label
+            title="Subir foto de perfil"
+            className="absolute -bottom-1.5 -right-1.5 p-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white cursor-pointer shadow-md transition-all active:scale-95 border border-indigo-400"
+          >
+            <Camera size={14} weight="bold" />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarUpload}
+              className="hidden"
+            />
+          </label>
         </div>
+
         <div className="flex flex-col text-center sm:text-left min-w-0">
-          <div className="flex items-center justify-center sm:justify-start gap-2">
+          <div className="flex items-center justify-center sm:justify-start gap-2.5 flex-wrap">
             <h2 className="text-lg font-bold text-white truncate">
               {fullName || 'Happy'}
             </h2>
-            <span className="px-2 py-0.5 rounded-md text-[10px] font-mono bg-indigo-500/20 text-indigo-300 font-bold">
-              PRO
-            </span>
+            {avatarUrl && (
+              <button
+                type="button"
+                onClick={handleRemoveAvatar}
+                title="Quitar foto y usar iniciales"
+                className="text-[11px] text-zinc-500 hover:text-rose-400 transition-colors underline"
+              >
+                Quitar foto
+              </button>
+            )}
           </div>
           <span className="text-xs text-zinc-400 font-mono mt-0.5">
             {user?.email}
           </span>
-          <div className="flex items-center justify-center sm:justify-start gap-1 text-xs text-emerald-400 font-semibold mt-1.5">
-            <ShieldCheck size={14} weight="fill" />
-            <span>Sincronización de Base de Datos Activa</span>
-          </div>
         </div>
       </div>
 

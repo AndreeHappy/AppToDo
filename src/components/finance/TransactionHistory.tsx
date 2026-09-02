@@ -68,6 +68,20 @@ export const TransactionHistory: React.FC<Props> = ({
     return filteredExecutedList.slice(startIndex, startIndex + pageSize);
   }, [filteredExecutedList, currentPage, pageSize]);
 
+  // Map chronological numbers: Oldest transaction is #1, newest transaction is #N
+  const txChronologicalNumberMap = useMemo(() => {
+    const sortedAsc = [...transactions].sort((a, b) => {
+      const timeA = new Date(a.created_at || a.date).getTime();
+      const timeB = new Date(b.created_at || b.date).getTime();
+      return timeA - timeB;
+    });
+    const map = new Map<string, number>();
+    sortedAsc.forEach((tx, i) => {
+      map.set(tx.id, i + 1);
+    });
+    return map;
+  }, [transactions]);
+
   // Format scheduled datetime display (e.g. 28/08/2026 13:00)
   const formatScheduledDate = (dtStr?: string) => {
     if (!dtStr) return 'Próximamente';
@@ -340,7 +354,7 @@ export const TransactionHistory: React.FC<Props> = ({
                                 <span className="text-[10px] text-zinc-500 uppercase font-bold flex items-center gap-1">
                                   <Hash size={11} /> N° Registro
                                 </span>
-                                <span className="text-white font-bold mt-0.5">#{idx + 1}</span>
+                                <span className="text-white font-bold mt-0.5">#{txChronologicalNumberMap.get(tx.id) || (transactions.length - idx)}</span>
                               </div>
 
                               <div className="flex flex-col">

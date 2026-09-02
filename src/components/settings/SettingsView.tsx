@@ -205,14 +205,10 @@ export const SettingsView: React.FC<Props> = () => {
                 <span className="text-[11px] text-rose-400">{uploadError}</span>
               )}
 
-              {bgSettings.customImageUrl ? (
+              {bgSettings.customImageUrl && (
                 <div className="text-[11px] text-emerald-400 font-mono flex items-center gap-1.5">
                   <Check size={13} weight="bold" />
                   <span>Imagen personalizada activa</span>
-                </div>
-              ) : (
-                <div className="p-3 rounded-2xl bg-zinc-900/60 border border-zinc-800 text-zinc-400 text-xs leading-relaxed">
-                  ✨ Fondo interactivo de puntos activo (80% intensidad predeterminada). Sube una imagen propia para desbloquear los controles de desenfoque e intensidad.
                 </div>
               )}
             </div>

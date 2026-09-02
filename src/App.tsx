@@ -72,9 +72,6 @@ const MainPortal: React.FC = () => {
                 <span className="text-sm font-black text-white tracking-tight leading-none block truncate">
                   Portal Multipropósito
                 </span>
-                <span className="text-[10px] text-zinc-400 font-medium hidden sm:inline">
-                  Centro de Control Personal
-                </span>
               </div>
             </div>
           ) : (

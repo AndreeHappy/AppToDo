@@ -24,6 +24,7 @@ interface AuthContextType {
     age?: number;
     country?: string;
     occupation?: string;
+    avatarUrl?: string;
     protectedReserveBase?: number;
   }) => Promise<{ error?: string }>;
 }
@@ -385,6 +386,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     age?: number;
     country?: string;
     occupation?: string;
+    avatarUrl?: string;
     protectedReserveBase?: number;
   }): Promise<{ error?: string }> => {
     if (!profile || !user) return { error: 'No hay usuario autenticado' };
@@ -396,6 +398,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       age: data.age !== undefined ? data.age : profile.age,
       country: data.country !== undefined ? data.country : profile.country,
       occupation: data.occupation !== undefined ? data.occupation : profile.occupation,
+      avatar_url: data.avatarUrl !== undefined ? data.avatarUrl : profile.avatar_url,
       protected_reserve_base: data.protectedReserveBase !== undefined ? data.protectedReserveBase : profile.protected_reserve_base,
     };
     setProfile(updated);
@@ -410,6 +413,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             age: updated.age,
             country: updated.country,
             occupation: updated.occupation,
+            avatar_url: updated.avatar_url,
             protected_reserve_base: updated.protected_reserve_base,
             updated_at: new Date().toISOString(),
           })
