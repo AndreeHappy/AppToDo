@@ -13,8 +13,6 @@ import { LiquidNavigator } from './components/navigation/LiquidNavigator';
 import type { ActiveModule } from './types';
 import {
   House,
-  ListChecks,
-  TrendUp,
   User,
   CircleNotch,
   Gear,
@@ -62,29 +60,16 @@ const MainPortal: React.FC = () => {
     <div className="min-h-[100dvh] bg-[#090a0f] text-zinc-100 flex flex-col justify-between antialiased transition-colors relative pb-24 md:pb-6">
       {/* Clean Module Top Bar (Only visible inside To-Do and Finance) */}
       {(activeModule === 'todo' || activeModule === 'finance') && (
-        <nav className="bg-[#11131a] border-b border-white/[0.08] px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between z-30 select-none">
-          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+        <nav className="bg-[#11131a] border-b border-white/[0.08] px-3.5 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between z-30 select-none">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <button
               onClick={() => setActiveModule('hub')}
-              className="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-xs font-bold text-zinc-300 hover:text-white flex items-center gap-1.5 transition-all active:scale-[0.98] shrink-0"
+              title="Volver al Hub"
+              className="p-2 sm:px-3 sm:py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-xs font-bold text-zinc-300 hover:text-white flex items-center gap-1.5 transition-all active:scale-[0.98] shrink-0"
             >
-              <House size={14} weight="bold" />
-              <span>Volver al Hub</span>
+              <House size={16} weight="bold" />
+              <span className="hidden sm:inline">Volver al Hub</span>
             </button>
-
-            <span className="text-zinc-600 hidden sm:inline">/</span>
-
-            <div className="flex items-center gap-1.5 text-xs font-bold">
-              {activeModule === 'todo' ? (
-                <span className="text-indigo-400 flex items-center gap-1">
-                  <ListChecks size={15} weight="bold" /> Módulo To-Do
-                </span>
-              ) : (
-                <span className="text-emerald-400 flex items-center gap-1">
-                  <TrendUp size={15} weight="bold" /> Módulo de Finanzas
-                </span>
-              )}
-            </div>
           </div>
 
           {/* Right Actions */}

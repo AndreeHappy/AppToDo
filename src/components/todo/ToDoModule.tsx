@@ -2,16 +2,16 @@
 import { useAuth } from '../../context/AuthContext';
 import { useTodo } from '../../context/TodoContext';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
-import { getTodayString, isPastDate, formatReadableDate, formatDisplayDate } from '../../utils/date';
+import { getTodayString, isPastDate, formatDisplayDate } from '../../utils/date';
 import { HeaderAgendas } from './HeaderAgendas';
 import { SidebarDates } from './SidebarDates';
-import { TaskInputBar } from './TaskInputBar';
+import { TaskFormModal } from './TaskFormModal';
 import { DualTaskBoard } from './DualTaskBoard';
 import { FooterActions } from './FooterActions';
 import { NewAgendaModal } from './NewAgendaModal';
 import { NewDateModal } from './NewDateModal';
 import { MarkdownEditorModal } from './MarkdownEditorModal';
-import { Sparkle, CloudCheck, CalendarBlank, X } from '@phosphor-icons/react';
+import { CloudCheck, CalendarBlank, X, CaretDown, Plus } from '@phosphor-icons/react';
 
 export const ToDoModule: React.FC = () => {
   const { user } = useAuth();
@@ -31,17 +31,28 @@ export const ToDoModule: React.FC = () => {
     clearCompleted,
     saveMarkdownTasks,
     unlockDate,
-    copyYesterdayPending,
   } = useTodo();
 
   const today = getTodayString();
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isAgendaModalOpen, setIsAgendaModalOpen] = useState(false);
   const [isDateModalOpen, setIsDateModalOpen] = useState(false);
   const [isMarkdownModalOpen, setIsMarkdownModalOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [syncedLogStatus, setSyncedLogStatus] = useState<string | null>(null);
 
-  // Sync Daily Log Markdown to Supabase when day changes or tasks change
+  // Listen for global central '+' action button from Liquid Navigator
+  useEffect(() => {
+    const handleOpenTaskModal = () => setIsTaskModalOpen(true);
+    window.addEventListener('app:open-task-modal', handleOpenTaskModal);
+    window.addEventListener('app:focus-task-input', handleOpenTaskModal);
+    return () => {
+      window.removeEventListener('app:open-task-modal', handleOpenTaskModal);
+      window.removeEventListener('app:focus-task-input', handleOpenTaskModal);
+    };
+  }, []);
+
+  // Sync Daily Log Markdown to Supabase
   useEffect(() => {
     async function syncDailyLog() {
       if (!isSupabaseConfigured || !supabase || !user) return;
@@ -103,7 +114,7 @@ export const ToDoModule: React.FC = () => {
     return () => clearTimeout(timer);
   }, [tasks, selectedDate, currentAgendaId, user, agendas]);
 
-  // Derived
+  // Derived dates
   const allDates = useMemo(() => {
     const datesSet = new Set<string>();
     datesSet.add(today);
@@ -116,9 +127,16 @@ export const ToDoModule: React.FC = () => {
     return agendas.find((a) => a.id === currentAgendaId) || agendas[0];
   }, [agendas, currentAgendaId]);
 
+  // Filter tasks for current agenda and date (including universal rollover of past pending tasks when viewing today)
   const filteredTasks = useMemo(() => {
-    return tasks.filter((t) => t.agendaId === currentAgendaId && t.date === selectedDate);
-  }, [tasks, currentAgendaId, selectedDate]);
+    return tasks.filter((t) => {
+      if (t.agendaId !== currentAgendaId) return false;
+      if (selectedDate === today) {
+        return t.date === today || (t.date < today && !t.completed);
+      }
+      return t.date === selectedDate;
+    });
+  }, [tasks, currentAgendaId, selectedDate, today]);
 
   const pendingTasks = useMemo(() => filteredTasks.filter((t) => !t.completed), [filteredTasks]);
   const doneTasks = useMemo(() => filteredTasks.filter((t) => t.completed), [filteredTasks]);
@@ -140,12 +158,6 @@ export const ToDoModule: React.FC = () => {
     }
   };
 
-  const handleCopyYesterday = () => {
-    const ok = copyYesterdayPending();
-    if (!ok) {
-      alert('No se encontraron tareas pendientes del día de ayer para transferir.');
-    }
-  };
 
   return (
     <div className="flex flex-col flex-1 antialiased w-full">
@@ -176,16 +188,16 @@ export const ToDoModule: React.FC = () => {
           <div className="fixed inset-0 z-40 md:hidden flex">
             <div
               onClick={() => setIsMobileSidebarOpen(false)}
-              className="fixed inset-0 bg-black/70 backdrop-blur-xs"
+              className="fixed inset-0 bg-black/80 backdrop-blur-xs"
             />
-            <div className="relative z-50 w-64 bg-[#0f1117] h-full shadow-2xl flex flex-col">
-              <div className="p-3 border-b border-white/[0.08] flex items-center justify-between">
+            <div className="relative z-50 w-72 bg-[#0f1117] h-full shadow-2xl flex flex-col">
+              <div className="p-3.5 border-b border-white/[0.08] flex items-center justify-between">
                 <span className="text-xs font-bold text-zinc-300">Historial de Fechas</span>
                 <button
                   onClick={() => setIsMobileSidebarOpen(false)}
                   className="p-1 rounded-md text-zinc-500 hover:text-white"
                 >
-                  <X size={16} />
+                  <X size={18} />
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto">
@@ -208,36 +220,32 @@ export const ToDoModule: React.FC = () => {
         )}
 
         {/* Content Area */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col gap-4 sm:gap-5 max-w-7xl mx-auto w-full">
-          {/* Active Agenda Banner */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col gap-4 max-w-7xl mx-auto w-full">
+          {/* Subheader: Agenda Name & Intuitive Mobile Date Picker */}
           <div className="flex items-center justify-between pb-2 border-b border-white/[0.06] flex-wrap gap-2">
             <div className="flex items-center gap-3">
-              {/* Mobile Sidebar Toggle Button */}
+              <h2 className="text-lg sm:text-xl font-black text-white tracking-tight">
+                {currentAgenda?.name || 'AGENDA'}
+              </h2>
+
+              {/* Intuitive Date Picker Button on Mobile & Desktop */}
               <button
                 onClick={() => setIsMobileSidebarOpen(true)}
-                className="md:hidden p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white flex items-center gap-1.5 text-xs font-medium"
+                title="Cambiar fecha de trabajo"
+                className="px-2.5 py-1 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 text-xs font-bold text-indigo-300 flex items-center gap-1.5 transition-colors font-mono"
               >
-                <CalendarBlank size={16} />
-                <span>Fechas</span>
+                <CalendarBlank size={14} className="text-indigo-400" />
+                <span>{formatDisplayDate(selectedDate)}</span>
+                {selectedDate === today && (
+                  <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400 uppercase">
+                    Hoy
+                  </span>
+                )}
+                <CaretDown size={12} className="text-zinc-500 md:hidden" />
               </button>
-
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">
-                    Agenda Activa
-                  </span>
-                  <span className="text-xs text-zinc-500">•</span>
-                  <span className="text-xs text-zinc-400 capitalize">
-                    {formatReadableDate(selectedDate)}
-                  </span>
-                </div>
-                <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight mt-0.5">
-                  {currentAgenda?.name || 'AGENDA'}
-                </h2>
-              </div>
             </div>
 
-            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
               {syncedLogStatus && (
                 <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-mono">
                   <CloudCheck size={16} />
@@ -245,37 +253,41 @@ export const ToDoModule: React.FC = () => {
                 </div>
               )}
 
-              {selectedDate === today && filteredTasks.length === 0 && (
-                <button
-                  onClick={handleCopyYesterday}
-                  className="px-3 py-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-zinc-300 flex items-center gap-1.5 transition-colors"
-                >
-                  <Sparkle size={14} className="text-amber-400" />
-                  <span>Pendientes de ayer</span>
-                </button>
-              )}
+              {/* Desktop Quick Add Task Button */}
+              <button
+                onClick={() => setIsTaskModalOpen(true)}
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md shadow-indigo-600/30 transition-all active:scale-[0.98]"
+              >
+                <Plus size={14} weight="bold" />
+                <span>Nueva Tarea</span>
+              </button>
             </div>
           </div>
 
-          {/* Quick Add Task Bar */}
-          <TaskInputBar
-            isLocked={isCurrentDateLocked}
-            onAddTask={addTask}
-            onUnlockDate={() => unlockDate(selectedDate)}
-          />
+          {/* Archived notice if day is past and locked */}
+          {isCurrentDateLocked && (
+            <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-200 text-xs flex items-center justify-between gap-3">
+              <span>
+                Día archivado: Esta fecha finalizó y está en modo solo lectura para proteger tu registro histórico.
+              </span>
+              <button
+                onClick={() => unlockDate(selectedDate)}
+                className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition-colors shrink-0"
+              >
+                Habilitar edición
+              </button>
+            </div>
+          )}
 
-          {/* Dual Columns Board */}
+          {/* Dual Board: Pending & Completed Tasks */}
           <DualTaskBoard
             pendingTasks={pendingTasks}
             doneTasks={doneTasks}
             onToggleTask={toggleTask}
-            onDeleteTask={(id, e) => {
-              e.stopPropagation();
-              deleteTask(id);
-            }}
+            onDeleteTask={(id) => deleteTask(id)}
           />
 
-          {/* Footer with Markdown Exporter & Stats */}
+          {/* Footer stats & Markdown Log Tools */}
           <FooterActions
             currentAgenda={currentAgenda}
             selectedDate={selectedDate}
@@ -285,6 +297,15 @@ export const ToDoModule: React.FC = () => {
           />
         </main>
       </div>
+
+      {/* Task Form Modal (Pop up for creating tasks on mobile & desktop) */}
+      <TaskFormModal
+        isOpen={isTaskModalOpen}
+        selectedDate={selectedDate}
+        agendaName={currentAgenda?.name || 'Agenda'}
+        onClose={() => setIsTaskModalOpen(false)}
+        onAddTask={addTask}
+      />
 
       {/* Modals */}
       <NewAgendaModal
@@ -296,7 +317,10 @@ export const ToDoModule: React.FC = () => {
       <NewDateModal
         isOpen={isDateModalOpen}
         onClose={() => setIsDateModalOpen(false)}
-        onSelectDate={setSelectedDate}
+        onSelectDate={(newDate) => {
+          setSelectedDate(newDate);
+          setIsDateModalOpen(false);
+        }}
       />
 
       <MarkdownEditorModal

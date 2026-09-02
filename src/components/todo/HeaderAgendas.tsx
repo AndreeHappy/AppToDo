@@ -1,7 +1,6 @@
 ﻿import React from 'react';
 import { Plus, Trash, ListChecks, FolderSimple } from '@phosphor-icons/react';
 import type { Agenda } from '../../types';
-import { getTodayString, formatDisplayDate } from '../../utils/date';
 
 interface Props {
   agendas: Agenda[];
@@ -18,79 +17,61 @@ export const HeaderAgendas: React.FC<Props> = ({
   onOpenNewAgendaModal,
   onDeleteAgenda,
 }) => {
-  const todayStr = getTodayString();
-
   return (
-    <header className="bg-[#11131a] border-b border-white/[0.08] px-6 py-4 flex flex-col gap-3.5 select-none transition-colors">
-      {/* Top row */}
+    <header className="bg-[#11131a] border-b border-white/[0.08] px-4 sm:px-6 py-3 flex flex-col gap-3 select-none transition-colors">
+      {/* Title Row */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
-            <ListChecks size={20} weight="bold" />
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+            <ListChecks size={18} weight="bold" />
           </div>
-          <div>
-            <h1 className="text-base font-bold text-white tracking-tight leading-none">
-              AppToDo
-            </h1>
-            <span className="text-xs text-zinc-400 font-medium">
-              Gestor de Tareas y Agendas
-            </span>
-          </div>
+          <h1 className="text-sm sm:text-base font-bold text-white tracking-tight leading-none">
+            Gestor de Tareas
+          </h1>
         </div>
 
-        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900/80 border border-zinc-800 text-xs text-zinc-300 font-mono">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Hoy: {formatDisplayDate(todayStr)}</span>
-        </div>
+        {/* Create new agenda button */}
+        <button
+          onClick={onOpenNewAgendaModal}
+          className="px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-zinc-300 hover:text-white flex items-center gap-1.5 transition-colors"
+        >
+          <Plus size={13} weight="bold" />
+          <span>Nueva Agenda</span>
+        </button>
       </div>
 
-      {/* Agendas Pills Bar */}
-      <div className="flex items-center gap-2.5 flex-wrap pt-1">
-        <span className="text-[11px] font-bold tracking-wider text-zinc-400 uppercase mr-1">
-          AGENDAS:
-        </span>
+      {/* Agendas Tabs (Horizontal scrollable) */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-0.5 no-scrollbar">
+        {agendas.map((agenda) => {
+          const isActive = agenda.id === currentAgendaId;
 
-        <div className="flex items-center gap-2 flex-wrap">
-          {agendas.map((agenda) => {
-            const isActive = agenda.id === currentAgendaId;
+          return (
+            <button
+              key={agenda.id}
+              onClick={() => onSelectAgenda(agenda.id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap shrink-0 group ${
+                isActive
+                  ? 'bg-indigo-600 text-white shadow-sm shadow-indigo-600/30'
+                  : 'bg-zinc-900/60 hover:bg-zinc-800 border border-zinc-800/80 text-zinc-400 hover:text-zinc-200'
+              }`}
+            >
+              <FolderSimple size={14} weight={isActive ? 'fill' : 'regular'} />
+              <span>{agenda.name}</span>
 
-            return (
-              <button
-                key={agenda.id}
-                onClick={() => onSelectAgenda(agenda.id)}
-                className={`relative px-4 py-2 rounded-full text-xs font-semibold tracking-wide transition-all flex items-center gap-2 active:scale-[0.98] ${
-                  isActive
-                    ? 'text-white bg-indigo-600 shadow-md shadow-indigo-600/20'
-                    : 'text-zinc-400 hover:text-zinc-200 bg-zinc-900/60 hover:bg-zinc-800/60 border border-zinc-800/80'
-                }`}
-              >
-                <span className="relative z-10 flex items-center gap-1.5">
-                  <FolderSimple size={14} weight={isActive ? 'fill' : 'regular'} />
-                  {agenda.name}
+              {agendas.length > 1 && (
+                <span
+                  onClick={(e) => onDeleteAgenda(agenda.id, e)}
+                  title="Eliminar agenda"
+                  className={`ml-1 p-0.5 rounded hover:bg-black/30 transition-colors ${
+                    isActive ? 'text-indigo-200 hover:text-white' : 'text-zinc-500 hover:text-rose-400'
+                  }`}
+                >
+                  <Trash size={12} />
                 </span>
-
-                {agendas.length > 1 && (
-                  <span
-                    role="button"
-                    title="Eliminar agenda"
-                    onClick={(e) => onDeleteAgenda(agenda.id, e)}
-                    className="relative z-10 p-0.5 text-zinc-400 hover:text-rose-400 rounded transition-colors"
-                  >
-                    <Trash size={12} />
-                  </span>
-                )}
-              </button>
-            );
-          })}
-
-          <button
-            onClick={onOpenNewAgendaModal}
-            className="px-3.5 py-2 rounded-full text-xs font-semibold text-zinc-400 hover:text-white border border-dashed border-zinc-700 hover:border-indigo-400 bg-transparent hover:bg-zinc-800/40 transition-all flex items-center gap-1.5 active:scale-[0.98]"
-          >
-            <Plus size={13} weight="bold" />
-            <span>AGREGAR AGENDA</span>
-          </button>
-        </div>
+              )}
+            </button>
+          );
+        })}
       </div>
     </header>
   );
