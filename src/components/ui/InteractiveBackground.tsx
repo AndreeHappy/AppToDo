@@ -52,7 +52,6 @@ export const saveStoredBgSettings = (settings: BgSettings) => {
     localStorage.removeItem(CUSTOM_IMAGE_STORAGE_KEY);
   }
 
-  // Save settings without potentially huge image string in main settings object
   const settingsToStore = {
     mode: settings.mode,
     blur: settings.blur,
@@ -67,7 +66,6 @@ export const InteractiveBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [settings, setSettings] = useState<BgSettings>(getStoredBgSettings);
 
-  // Listen to background setting changes in real time
   useEffect(() => {
     const handleSettingsChange = () => {
       setSettings(getStoredBgSettings());
@@ -79,7 +77,6 @@ export const InteractiveBackground: React.FC = () => {
   const hasCustomImage = settings.mode === 'custom_image' && !!settings.customImageUrl;
 
   useEffect(() => {
-    // If using custom image or minimal mode, skip canvas rendering
     if (hasCustomImage || settings.mode === 'minimal') return;
 
     const canvas = canvasRef.current;
@@ -122,7 +119,6 @@ export const InteractiveBackground: React.FC = () => {
     window.addEventListener('mousemove', handleMouseMove, { passive: true });
     window.addEventListener('touchmove', handleTouchMove, { passive: true });
 
-    // Dot Grid Construction (24px separation)
     const SPACING = 24;
     interface Dot {
       ox: number;
@@ -172,43 +168,10 @@ export const InteractiveBackground: React.FC = () => {
 
       ctx.clearRect(0, 0, width, height);
 
-      // Aurora Mode
-      if (settings.mode === 'aurora') {
-        const grad1 = ctx.createRadialGradient(
-          width * 0.3 + Math.sin(time * 0.5) * 120,
-          height * 0.4 + Math.cos(time * 0.4) * 90,
-          20,
-          width * 0.3,
-          height * 0.4,
-          width * 0.6
-        );
-        grad1.addColorStop(0, 'rgba(99, 102, 241, 0.18)');
-        grad1.addColorStop(1, 'rgba(99, 102, 241, 0)');
-        ctx.fillStyle = grad1;
-        ctx.fillRect(0, 0, width, height);
-
-        const grad2 = ctx.createRadialGradient(
-          width * 0.7 + Math.cos(time * 0.6) * 100,
-          height * 0.6 + Math.sin(time * 0.5) * 80,
-          20,
-          width * 0.7,
-          height * 0.6,
-          width * 0.5
-        );
-        grad2.addColorStop(0, 'rgba(16, 185, 129, 0.12)');
-        grad2.addColorStop(1, 'rgba(16, 185, 129, 0)');
-        ctx.fillStyle = grad2;
-        ctx.fillRect(0, 0, width, height);
-
-        animationFrameId = requestAnimationFrame(render);
-        return;
-      }
-
-      // Interactive Dot Matrix Mode
       const maxDist = mouse.radius;
-      const opacityMultiplier = settings.opacity / 100;
+      // Fixed 80% opacity for default dot matrix
+      const opacityMultiplier = 0.8;
 
-      // Mouse ambient glow
       if (mouse.x > -500) {
         const mouseGlow = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, maxDist * 1.5);
         mouseGlow.addColorStop(0, `rgba(99, 102, 241, ${0.14 * opacityMultiplier})`);
@@ -276,9 +239,9 @@ export const InteractiveBackground: React.FC = () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('touchmove', handleTouchMove);
     };
-  }, [settings, hasCustomImage]);
+  }, [hasCustomImage, settings.mode]);
 
-  // 1. If Custom Image is enabled, render the user's uploaded background
+  // 1. Custom Background Image Layer
   if (hasCustomImage && settings.customImageUrl) {
     return (
       <div
@@ -294,23 +257,23 @@ export const InteractiveBackground: React.FC = () => {
             transform: settings.blur > 0 ? 'scale(1.08)' : 'scale(1)',
           }}
         />
-        {/* Subtle dark overlay for contrast */}
-        <div className="absolute inset-0 bg-black/40" />
+        {/* Contrast Veil: Luminous frosted white in Light mode (preserves text readability), cinematic dark in Dark mode */}
+        <div className="absolute inset-0 bg-white/75 dark:bg-black/45 transition-colors duration-300" />
       </div>
     );
   }
 
   if (settings.mode === 'minimal') return null;
 
-  // 2. Interactive Canvas Dot Matrix / Aurora
+  // 2. Interactive Canvas Dot Matrix (Locked at 80% opacity, 0 blur)
   return (
     <canvas
       ref={canvasRef}
       style={{
-        filter: settings.blur > 0 ? `blur(${settings.blur}px)` : 'none',
-        opacity: settings.opacity / 100,
+        filter: 'none',
+        opacity: 0.8,
       }}
-      className="fixed inset-0 pointer-events-none z-0 transition-[filter,opacity] duration-500 select-none"
+      className="fixed inset-0 pointer-events-none z-0 select-none"
     />
   );
 };

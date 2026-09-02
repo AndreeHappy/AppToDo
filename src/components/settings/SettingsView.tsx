@@ -1,6 +1,5 @@
 ﻿import React, { useState, useRef } from 'react';
 import {
-  Gear,
   Sun,
   Moon,
   GithubLogo,
@@ -9,13 +8,11 @@ import {
   Code,
   Translate,
   Bank,
-  House,
   Sparkle,
   Image as ImageIcon,
   Trash,
   UploadSimple,
   Check,
-  Drop,
   Sliders,
 } from '@phosphor-icons/react';
 import { useAuth } from '../../context/AuthContext';
@@ -27,12 +24,12 @@ import {
 } from '../ui/InteractiveBackground';
 
 interface Props {
-  onBackToHub: () => void;
+  onBackToHub?: () => void;
 }
 
-export const SettingsView: React.FC<Props> = ({ onBackToHub }) => {
+export const SettingsView: React.FC<Props> = () => {
   const { user, logout } = useAuth();
-  const { style, mode, setStyle, setMode } = useTheme();
+  const { mode, setMode } = useTheme();
   const [bgSettings, setBgSettings] = useState<BgSettings>(getStoredBgSettings);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -43,7 +40,6 @@ export const SettingsView: React.FC<Props> = ({ onBackToHub }) => {
     saveStoredBgSettings(updated);
   };
 
-  // Handle custom background image upload
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUploadError(null);
     const file = e.target.files?.[0];
@@ -59,7 +55,6 @@ export const SettingsView: React.FC<Props> = ({ onBackToHub }) => {
       const result = event.target?.result as string;
       if (!result) return;
 
-      // Optimize image size using offscreen canvas to prevent localStorage quota issues
       const img = new Image();
       img.onload = () => {
         const maxWidth = 1920;
@@ -101,114 +96,66 @@ export const SettingsView: React.FC<Props> = ({ onBackToHub }) => {
 
   return (
     <div className="flex-1 max-w-4xl mx-auto w-full p-4 sm:p-8 flex flex-col gap-6 overflow-y-auto antialiased">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/[0.08]">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-bold text-indigo-400 uppercase tracking-widest">
-            <Gear size={15} />
-            <span>Configuración Global</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-0.5">
-            Ajustes del Sistema
-          </h1>
+      {/* Title */}
+      <div className="pb-1 border-b border-white/[0.08]">
+        <div className="text-xs font-bold text-indigo-400 uppercase tracking-widest">
+          Configuración Global
         </div>
-
-        <button
-          onClick={onBackToHub}
-          className="self-start sm:self-auto px-3.5 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-semibold text-zinc-300 hover:text-white flex items-center gap-1.5 transition-colors"
-        >
-          <House size={14} />
-          <span>Volver al Hub</span>
-        </button>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-0.5">
+          Ajustes del Sistema
+        </h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {/* Card 1: Temas de Interfaz (Glassmorphism & Minimalista con Dark & White) */}
-        <div className="p-5 rounded-3xl bg-[#11131a] border border-white/[0.08] shadow-xl flex flex-col gap-4">
+        {/* Card 1: Tema de Interfaz (Efecto Cristal con Modo Oscuro y Claro) */}
+        <div className="p-5 rounded-3xl bg-[#11131a] border border-white/[0.08] shadow-xl flex flex-col justify-between gap-4">
           <div className="flex items-start gap-3.5">
             <div className="w-10 h-10 rounded-2xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center shrink-0">
-              <Drop size={22} weight="bold" />
+              <Sparkle size={22} weight="bold" />
             </div>
             <div className="flex flex-col">
-              <h2 className="text-base font-bold text-white">Temas de Interfaz</h2>
+              <h2 className="text-base font-bold text-white">Tema de Interfaz (Efecto Cristal)</h2>
               <p className="text-xs text-zinc-400 mt-0.5 leading-relaxed">
-                Selecciona la arquitectura visual y la modalidad de contraste.
+                Diseño moderno con efecto cristal translúcido de alta legibilidad.
               </p>
             </div>
           </div>
 
-          <div className="flex flex-col gap-3.5 pt-1 text-xs">
-            {/* 1. Theme Style (Glassmorphism vs Minimalista) */}
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                Estilo Visual
-              </span>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setStyle('glassmorphism')}
-                  className={`py-2 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 border transition-all ${
-                    style === 'glassmorphism'
-                      ? 'bg-indigo-600 border-indigo-500 text-white shadow-sm'
-                      : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  <Sparkle size={14} weight="bold" />
-                  <span>Glassmorphism</span>
-                </button>
+          <div className="flex flex-col gap-2 pt-1 text-xs">
+            <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
+              Modalidad de Color
+            </span>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setMode('dark')}
+                className={`py-2 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 border transition-all ${
+                  mode === 'dark'
+                    ? 'bg-indigo-600 border-indigo-500 text-white shadow-sm'
+                    : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
+                }`}
+              >
+                <Moon size={14} weight="bold" />
+                <span>Oscuro (Dark)</span>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => setStyle('minimalist')}
-                  className={`py-2 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 border transition-all ${
-                    style === 'minimalist'
-                      ? 'bg-indigo-600 border-indigo-500 text-white shadow-sm'
-                      : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  <Check size={14} weight="bold" />
-                  <span>Minimalista</span>
-                </button>
-              </div>
-            </div>
-
-            {/* 2. Theme Mode (Dark vs White/Light) */}
-            <div className="flex flex-col gap-1.5">
-              <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
-                Modalidad de Color
-              </span>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setMode('dark')}
-                  className={`py-2 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 border transition-all ${
-                    mode === 'dark'
-                      ? 'bg-zinc-800 border-zinc-700 text-white shadow-sm'
-                      : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  <Moon size={14} weight="bold" />
-                  <span>Dark (Oscuro)</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setMode('light')}
-                  className={`py-2 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 border transition-all ${
-                    mode === 'light'
-                      ? 'bg-zinc-100 border-zinc-300 text-zinc-900 shadow-sm'
-                      : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  <Sun size={14} weight="bold" />
-                  <span>White (Claro)</span>
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setMode('light')}
+                className={`py-2 px-3 rounded-xl font-bold flex items-center justify-center gap-1.5 border transition-all ${
+                  mode === 'light'
+                    ? 'bg-zinc-100 border-zinc-300 text-zinc-900 shadow-sm'
+                    : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-white'
+                }`}
+              >
+                <Sun size={14} weight="bold" />
+                <span>Claro (White)</span>
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Card 2: Fondo Personalizado & Sliders de Desenfoque e Intensidad */}
+        {/* Card 2: Fondo de Pantalla (Subida de Imagen + Sliders condicionales) */}
         <div className="p-5 rounded-3xl bg-[#11131a] border border-white/[0.08] shadow-xl flex flex-col gap-4">
           <div className="flex items-start gap-3.5">
             <div className="w-10 h-10 rounded-2xl bg-indigo-500/15 text-indigo-400 flex items-center justify-center shrink-0">
@@ -222,7 +169,7 @@ export const SettingsView: React.FC<Props> = ({ onBackToHub }) => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-3.5 pt-1 text-xs">
+          <div className="flex flex-col gap-3 pt-1 text-xs">
             {/* Custom Image Upload Box */}
             <div className="flex flex-col gap-2">
               <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider">
@@ -264,55 +211,60 @@ export const SettingsView: React.FC<Props> = ({ onBackToHub }) => {
                   <span>Imagen personalizada activa</span>
                 </div>
               ) : (
-                <span className="text-[11px] text-zinc-500">
-                  Fondo interactivo de matriz de puntos activo (80% intensidad)
-                </span>
+                <div className="p-3 rounded-2xl bg-zinc-900/60 border border-zinc-800 text-zinc-400 text-xs leading-relaxed">
+                  ✨ Fondo interactivo de puntos activo (80% intensidad predeterminada). Sube una imagen propia para desbloquear los controles de desenfoque e intensidad.
+                </div>
               )}
             </div>
 
-            {/* Slider 1: Blur / Desenfoque (Barra continua) */}
-            <div className="flex flex-col gap-1.5 pt-1">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1">
-                  <Sliders size={13} />
-                  <span>Desenfoque (Blur)</span>
-                </span>
-                <span className="font-mono text-indigo-400 font-bold text-xs">
-                  {bgSettings.blur === 0 ? '0px (Nítido)' : `${bgSettings.blur}px`}
-                </span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="25"
-                step="1"
-                value={bgSettings.blur}
-                onChange={(e) => updateBgSetting({ blur: parseInt(e.target.value, 10) })}
-                className="w-full accent-indigo-500 cursor-pointer h-1.5 bg-zinc-800 rounded-lg appearance-none"
-              />
-            </div>
+            {/* Sliders ONLY visible when user uploaded an image */}
+            {bgSettings.customImageUrl && (
+              <div className="flex flex-col gap-3 pt-2 border-t border-white/[0.06]">
+                {/* Slider 1: Blur / Desenfoque */}
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1">
+                      <Sliders size={13} />
+                      <span>Desenfoque (Blur)</span>
+                    </span>
+                    <span className="font-mono text-indigo-400 font-bold text-xs">
+                      {bgSettings.blur === 0 ? '0px (Nítido)' : `${bgSettings.blur}px`}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="25"
+                    step="1"
+                    value={bgSettings.blur}
+                    onChange={(e) => updateBgSetting({ blur: parseInt(e.target.value, 10) })}
+                    className="w-full accent-indigo-500 cursor-pointer h-1.5 bg-zinc-800 rounded-lg appearance-none"
+                  />
+                </div>
 
-            {/* Slider 2: Opacity / Intensidad (Barra continua) */}
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1">
-                  <Sliders size={13} />
-                  <span>Intensidad / Opacidad</span>
-                </span>
-                <span className="font-mono text-emerald-400 font-bold text-xs">
-                  {bgSettings.opacity}%
-                </span>
+                {/* Slider 2: Opacity / Intensidad */}
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1">
+                      <Sliders size={13} />
+                      <span>Intensidad / Opacidad</span>
+                    </span>
+                    <span className="font-mono text-emerald-400 font-bold text-xs">
+                      {bgSettings.opacity}%
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="10"
+                    max="100"
+                    step="5"
+                    value={bgSettings.opacity}
+                    onChange={(e) => updateBgSetting({ opacity: parseInt(e.target.value, 10) })}
+                    className="w-full accent-emerald-500 cursor-pointer h-1.5 bg-zinc-800 rounded-lg appearance-none"
+                  />
+                </div>
               </div>
-              <input
-                type="range"
-                min="10"
-                max="100"
-                step="5"
-                value={bgSettings.opacity}
-                onChange={(e) => updateBgSetting({ opacity: parseInt(e.target.value, 10) })}
-                className="w-full accent-emerald-500 cursor-pointer h-1.5 bg-zinc-800 rounded-lg appearance-none"
-              />
-            </div>
+            )}
           </div>
         </div>
 

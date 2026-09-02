@@ -3,8 +3,6 @@ import { motion } from 'framer-motion';
 import {
   ListChecks,
   TrendUp,
-  ShieldCheck,
-  SignOut,
   CalendarCheck,
   LockKey,
   Wallet,
@@ -12,8 +10,6 @@ import {
   Flame,
   Lightning,
   CheckCircle,
-  Gear,
-  User,
 } from '@phosphor-icons/react';
 import { useAuth } from '../../context/AuthContext';
 import { useFinance } from '../../context/FinanceContext';
@@ -22,16 +18,12 @@ import type { ActiveModule } from '../../types';
 
 interface Props {
   onSelectModule: (module: ActiveModule) => void;
-  onOpenProfile?: () => void;
-  onOpenSettings?: () => void;
 }
 
 export const DashboardHub: React.FC<Props> = ({
   onSelectModule,
-  onOpenProfile,
-  onOpenSettings,
 }) => {
-  const { user, profile, logout } = useAuth();
+  const { user, profile } = useAuth();
   const { summary, baseReserve } = useFinance();
   const { todayPendingCount } = useTodo();
 
@@ -39,56 +31,7 @@ export const DashboardHub: React.FC<Props> = ({
 
   return (
     <div className="flex-1 flex flex-col justify-between antialiased selection:bg-indigo-500/30 transition-colors">
-      {/* Top Hub Bar (Clean & Minimal) */}
-      <header className="bg-[#11131a] border-b border-white/[0.08] px-4 sm:px-8 py-3 flex items-center justify-between transition-colors select-none">
-        <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 shrink-0 rounded-xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
-            <ShieldCheck size={20} weight="bold" />
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-sm font-black text-white tracking-tight leading-none truncate">
-              Portal Multipropósito
-            </h1>
-            <span className="text-[11px] text-zinc-400 font-medium hidden sm:inline">
-              Centro de Control Personal
-            </span>
-          </div>
-        </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          {/* Profile Shortcut */}
-          {onOpenProfile && (
-            <button
-              onClick={onOpenProfile}
-              title="Personalizar perfil"
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition-colors"
-            >
-              <User size={14} className="text-indigo-400" />
-              <span className="hidden sm:inline font-mono font-bold">{displayName}</span>
-            </button>
-          )}
-
-          {/* Settings Shortcut */}
-          {onOpenSettings && (
-            <button
-              onClick={onOpenSettings}
-              title="Ajustes y configuración"
-              className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-white transition-colors"
-            >
-              <Gear size={15} />
-            </button>
-          )}
-
-          {/* Logout Button */}
-          <button
-            onClick={() => logout()}
-            title="Cerrar sesión"
-            className="p-2 rounded-xl bg-zinc-900 hover:bg-rose-500/10 text-zinc-400 hover:text-rose-400 border border-zinc-800 transition-colors"
-          >
-            <SignOut size={15} />
-          </button>
-        </div>
-      </header>
 
       {/* Main Hub Body */}
       <main className="flex-1 max-w-6xl mx-auto w-full p-6 sm:p-8 flex flex-col justify-center gap-7 sm:gap-8 my-auto">
