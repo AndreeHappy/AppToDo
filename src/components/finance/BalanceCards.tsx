@@ -25,7 +25,6 @@ export const BalanceCards: React.FC<Props> = ({
   onOpenReserveSettings,
   onOpenReplenishReserve,
 }) => {
-  const isReserveIntact = summary.protectedReserve >= baseReserve;
   const isPhysicalNegative = summary.physicalBalance <= 0;
   const isDigitalNegative = summary.digitalBalance < 0;
   const isFreeZero = summary.freeSpendingBalance <= 0;
@@ -196,11 +195,29 @@ export const BalanceCards: React.FC<Props> = ({
         {/* Pie explicativo */}
         <div className="pt-3.5 mt-4 border-t border-white/[0.06] flex items-center justify-between text-xs text-zinc-400 flex-wrap gap-2">
           <div className="flex items-center gap-1.5">
-            <ShieldCheck size={14} className={isReserveIntact ? 'text-emerald-400' : 'text-rose-400'} />
-            <span>{isReserveIntact ? 'Ahorro 100% Protegido' : 'Déficit en Ahorro'}</span>
+            {summary.isReserveDeficit ? (
+              <>
+                <WarningCircle size={14} weight="fill" className="text-amber-400" />
+                <span className="text-amber-400 font-semibold">
+                  Déficit en Ahorro: -S/. {summary.reserveDeficit.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+                </span>
+              </>
+            ) : summary.protectedReserve >= baseReserve ? (
+              <>
+                <ShieldCheck size={14} weight="fill" className="text-emerald-400" />
+                <span className="text-emerald-400 font-semibold">Ahorro 100% Protegido</span>
+              </>
+            ) : (
+              <>
+                <ShieldCheck size={14} className="text-zinc-400" />
+                <span>
+                  Ahorro Acumulado: S/. {summary.protectedReserve.toLocaleString('es-PE', { minimumFractionDigits: 2 })} / S/. {baseReserve.toLocaleString('es-PE')}
+                </span>
+              </>
+            )}
           </div>
           <span className="font-mono text-zinc-400 text-[11px]">
-            Digital - Monto Ahorrado
+            {summary.freeSpendingBalance > 0 ? 'Libre para Gastos' : 'Fondos Asignados a Reserva'}
           </span>
         </div>
       </motion.div>

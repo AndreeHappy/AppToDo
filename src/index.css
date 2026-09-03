@@ -333,3 +333,91 @@ html.light nav.sticky .bg-zinc-900 {
   border-color: #cbd5e1 !important;
   color: #0f172a !important;
 }
+
+/* =========================================================
+   LIGHT MODE: MODAL WINDOWS & CARD 2 CORRECTIONS
+   ========================================================= */
+
+/* Card 2 (Saldo Libre) in Light Mode when zero balance */
+html.light .bg-\[\#151218\] {
+  background-color: rgba(255, 245, 247, 0.92) !important;
+  border-color: rgba(244, 63, 94, 0.25) !important;
+  box-shadow: 0 10px 30px -5px rgba(244, 63, 94, 0.08) !important;
+}
+
+html.light .bg-\[\#151218\] .text-white {
+  color: #0f172a !important;
+}
+
+html.light .bg-\[\#151218\] .text-zinc-400 {
+  color: #475569 !important;
+}
+
+html.light .bg-\[\#151218\] .text-rose-400 {
+  color: #be123c !important;
+}
+
+html.light .bg-\[\#151218\] .bg-rose-500\/10 {
+  background-color: rgba(244, 63, 94, 0.1) !important;
+  border-color: rgba(244, 63, 94, 0.25) !important;
+}
+
+/* Modals in Light Mode (SavingsManagementModal & EmergencyWithdrawalModal) */
+html.light .bg-\[\#12141c\],
+html.light .bg-\[\#141217\] {
+  background-color: rgba(255, 255, 255, 0.98) !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.25) !important;
+  color: #0f172a !important;
+}
+
+/* Modal text elements in Light Mode */
+html.light .bg-\[\#12141c\] .text-white,
+html.light .bg-\[\#141217\] .text-white {
+  color: #0f172a !important;
+}
+
+html.light .bg-\[\#12141c\] .text-zinc-300,
+html.light .bg-\[\#141217\] .text-zinc-300 {
+  color: #1e293b !important;
+}
+
+html.light .bg-\[\#12141c\] .text-zinc-400,
+html.light .bg-\[\#141217\] .text-zinc-400 {
+  color: #475569 !important;
+}
+
+html.light .bg-\[\#12141c\] .border-white\/\[0\.08\],
+html.light .bg-\[\#12141c\] .border-white\/\[0\.06\],
+html.light .bg-\[\#141217\] .border-white\/\[0\.08\] {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Modal sub-boxes (tabs, status boxes, inputs) in Light Mode */
+html.light .bg-\[\#12141c\] .bg-zinc-900,
+html.light .bg-\[\#12141c\] .bg-zinc-900\/80,
+html.light .bg-\[\#12141c\] .bg-zinc-900\/50,
+html.light .bg-\[\#141217\] .bg-zinc-900 {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
+
+html.light .bg-\[\#12141c\] .border-zinc-800,
+html.light .bg-\[\#12141c\] .border-zinc-700,
+html.light .bg-\[\#141217\] .border-zinc-800 {
+  border-color: #cbd5e1 !important;
+}
+
+/* Modal close button in Light Mode */
+html.light .bg-\[\#12141c\] button:has(svg.ph-x),
+html.light .bg-\[\#141217\] button:has(svg.ph-x) {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  border-color: #cbd5e1 !important;
+}
+
+html.light .bg-\[\#12141c\] button:has(svg.ph-x):hover,
+html.light .bg-\[\#141217\] button:has(svg.ph-x):hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}

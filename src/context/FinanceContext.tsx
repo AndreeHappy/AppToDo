@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+﻿import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import type {
   Transaction,
   EmergencyWithdrawal,
@@ -276,9 +276,9 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
         lowerConcept.includes('retiro de bolsa de ahorro');
 
       const isReplenish =
-        tx.category === 'Reposición de Ahorro' ||
+        tx.category === 'ReposiciÃ³n de Ahorro' ||
         notes.includes('[REPOSICION_AHORRO]') ||
-        lowerConcept.includes('reposición al fondo de ahorro');
+        lowerConcept.includes('reposiciÃ³n al fondo de ahorro');
 
       const isIncrease =
         tx.category === 'Aumento de Ahorro' ||
@@ -334,15 +334,28 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const physicalBalance = incPhysical - expPhysical;
     const digitalBalance = incDigital - expDigital;
 
+    // Deficit is only what was actively withdrawn from savings and not yet replenished
     const reserveDeficit = Math.max(0, totalWithdrawnFromReserve - totalReplenishedToReserve);
-    const currentReserve = Math.max(0, baseReserve - reserveDeficit);
     const isReserveDeficit = reserveDeficit > 0;
 
-    const protectedReserve = currentReserve;
-    const freeSpendingBalance = Math.max(0, totalBalance - currentReserve);
+    // The effective savings target
+    const effectiveTarget = Math.max(0, baseReserve - reserveDeficit);
 
-    const freePhysicalBalance = physicalBalance;
-    const freeDigitalBalance = digitalBalance - protectedReserve;
+    // Actual protected funds cannot exceed the total balance the user actually possesses!
+    // For a new user with S/. 0, actualReserve is S/. 0 (not S/. 950!)
+    const currentReserve = Math.max(0, Math.min(Math.max(0, totalBalance), effectiveTarget));
+    const protectedReserve = currentReserve;
+
+    // Free spending balance is money remaining above the effective savings target
+    const freeSpendingBalance = Math.max(0, totalBalance - effectiveTarget);
+
+    // Reserve is distributed into digital first, then physical
+    const digitalReserve = Math.max(0, Math.min(Math.max(0, digitalBalance), currentReserve));
+    const physicalReserve = Math.max(0, currentReserve - digitalReserve);
+
+    // Free digital and physical balances are never negative!
+    const freeDigitalBalance = Math.max(0, digitalBalance - digitalReserve);
+    const freePhysicalBalance = Math.max(0, physicalBalance - physicalReserve);
 
     const pendingExpenseTotal = pendingPhysicalTotal + pendingDigitalTotal;
     const effectiveFreeBalance = Math.max(0, freeSpendingBalance - pendingExpenseTotal);
@@ -587,7 +600,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       fundType,
       amount,
       category: 'Retiro de Ahorro',
-      counterpartyConcept: `Retiro de Bolsa de Ahorro – ${reason}`,
+      counterpartyConcept: `Retiro de Bolsa de Ahorro â€“ ${reason}`,
       notes: `[RETIRO_AHORRO] ${reason}`,
       date: todayStr,
     });
@@ -599,9 +612,9 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       type: 'expense',
       fundType,
       amount,
-      category: 'Reposición de Ahorro',
-      counterpartyConcept: 'Reposición al Fondo de Ahorro Protegido',
-      notes: '[REPOSICION_AHORRO] Reposición al fondo protegido',
+      category: 'ReposiciÃ³n de Ahorro',
+      counterpartyConcept: 'ReposiciÃ³n al Fondo de Ahorro Protegido',
+      notes: '[REPOSICION_AHORRO] ReposiciÃ³n al fondo protegido',
       date: todayStr,
     });
   };

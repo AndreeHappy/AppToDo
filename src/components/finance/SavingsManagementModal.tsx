@@ -260,6 +260,13 @@ export const SavingsManagementModal: React.FC<Props> = ({
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {/* Notice if trying to withdraw with zero reserve */}
+            {mode === 'withdraw' && summary.currentReserve <= 0 && (
+              <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-500 text-xs font-semibold leading-relaxed">
+                Actualmente tu cuenta no tiene dinero acumulado en reserva para retirar (Ahorro actual: S/. 0.00). Primero debes ingresar saldo a tu cuenta.
+              </div>
+            )}
+
             {/* Amount Input */}
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-bold text-zinc-300 flex items-center justify-between">
@@ -360,7 +367,7 @@ export const SavingsManagementModal: React.FC<Props> = ({
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || (mode === 'withdraw' && summary.currentReserve <= 0)}
               className={`w-full py-3 rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-lg transition-all active:scale-[0.98] ${
                 mode === 'withdraw'
                   ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-amber-600/20'
