@@ -7,8 +7,10 @@ interface TodoContextType {
   currentAgendaId: string;
   selectedDate: string;
   unlockedDates: string[];
+  recordedDates: string[];
   tasks: Task[];
   todayPendingCount: number;
+  recordDate: (date: string) => void;
   setCurrentAgendaId: (id: string) => void;
   setSelectedDate: (date: string) => void;
   createAgenda: (name: string) => void;
@@ -38,6 +40,38 @@ export const TodoProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentAgendaId, setCurrentAgendaId] = useState('agenda_tesis');
   const [selectedDate, setSelectedDate] = useState(today);
   const [unlockedDates, setUnlockedDates] = useState<string[]>([]);
+  const [recordedDates, setRecordedDates] = useState<string[]>(() => {
+    const saved = localStorage.getItem('app_todo_recorded_dates_v3');
+    const d = new Date();
+    const list: string[] = [];
+    // Ensure the current week (past 7 days including yesterday) are always present
+    for (let i = 0; i < 7; i++) {
+      const past = new Date(d);
+      past.setDate(past.getDate() - i);
+      const y = past.getFullYear();
+      const m = String(past.getMonth() + 1).padStart(2, '0');
+      const day = String(past.getDate()).padStart(2, '0');
+      list.push(`${y}-${m}-${day}`);
+    }
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return Array.from(new Set([...list, ...parsed])).sort((a, b) => b.localeCompare(a));
+      } catch {}
+    }
+    return list;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('app_todo_recorded_dates_v3', JSON.stringify(recordedDates));
+  }, [recordedDates]);
+
+  const recordDate = useCallback((date: string) => {
+    setRecordedDates((prev) => {
+      if (prev.includes(date)) return prev;
+      return Array.from(new Set([...prev, date])).sort((a, b) => b.localeCompare(a));
+    });
+  }, []);
   const [tasks, setTasks] = useState<Task[]>([
     {
       id: 't_demo_1',
@@ -73,8 +107,9 @@ export const TodoProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const rolloverPendingTasks = useCallback((taskList: Task[]): Task[] => {
     const todayStr = getTodayString();
     return taskList.map((t) => {
-      // If a task is pending and was assigned to a past date, advance it to today
+      // If a task is pending and was assigned to a past date, advance it to today but keep date recorded
       if (t.date < todayStr && !t.completed) {
+        recordDate(t.date);
         return {
           ...t,
           date: todayStr,
@@ -82,7 +117,7 @@ export const TodoProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return t;
     });
-  }, []);
+  }, [recordDate]);
 
   // 1. Initial Load from LocalStorage
   useEffect(() => {
@@ -206,8 +241,10 @@ export const TodoProvider: React.FC<{ children: React.ReactNode }> = ({ children
         currentAgendaId,
         selectedDate,
         unlockedDates,
+        recordedDates,
         tasks,
         todayPendingCount,
+        recordDate,
         setCurrentAgendaId,
         setSelectedDate,
         createAgenda,

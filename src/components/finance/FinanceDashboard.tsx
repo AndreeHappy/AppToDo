@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ShieldWarning,
   Bank,
@@ -121,29 +121,17 @@ export const FinanceDashboard: React.FC<Props> = () => {
             </button>
           )}
 
-          {/* Savings Management Buttons (Replaces obsolete Registrar Movimiento) */}
+          {/* Unified Savings Management Button */}
           <button
             onClick={() => {
               setSavingsModalMode('withdraw');
               setIsSavingsModalOpen(true);
             }}
-            title="Retirar dinero de la bolsa de ahorro protegido"
+            title="Gestionar Fondo de Ahorro Protegido (Sacar, Reponer o Aumentar)"
             className="px-3 sm:px-3.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/35 text-amber-300 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-[0.98]"
           >
-            <ShieldWarning size={15} weight="bold" />
-            <span>Sacar Monto de Ahorro</span>
-          </button>
-
-          <button
-            onClick={() => {
-              setSavingsModalMode('increase');
-              setIsSavingsModalOpen(true);
-            }}
-            title="Aumentar la base de la bolsa de ahorro"
-            className="hidden sm:flex px-3 sm:px-3.5 py-1.5 rounded-xl bg-indigo-500/15 hover:bg-indigo-500/25 border border-indigo-500/35 text-indigo-300 text-xs font-bold items-center gap-1.5 transition-all active:scale-[0.98]"
-          >
             <PiggyBank size={15} weight="bold" />
-            <span>Aumentar Bolsa</span>
+            <span>Gestionar Ahorro</span>
           </button>
         </div>
       </div>

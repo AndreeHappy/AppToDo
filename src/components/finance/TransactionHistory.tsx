@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   MagnifyingGlass,
@@ -24,6 +24,15 @@ import {
 import type { Transaction, TransactionType, FundType } from '../../types';
 import { formatDisplayDate } from '../../utils/date';
 import { CATEGORY_STYLES } from '../../constants/categories';
+
+// Helper to strip emojis from transaction concept titles
+const cleanConcept = (text: string): string => {
+  if (!text) return '';
+  return text
+    .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE0F}]/gu, '')
+    .replace(/^[\s\-–—]+/, '')
+    .trim();
+};
 
 interface Props {
   transactions: Transaction[];
@@ -275,10 +284,10 @@ export const TransactionHistory: React.FC<Props> = ({
                           : 'hover:bg-zinc-800/30 border border-transparent'
                       }`}
                     >
-                      {/* Compact Main Row: Icon + Detalle & Pill + Monto */}
+                      {/* Main Row: Icon + 3-Line Content (matching Image 2) + Monto */}
                       <div className="flex items-center justify-between gap-3">
-                        {/* Left Side */}
-                        <div className="flex items-center gap-3 min-w-0">
+                        {/* Left Side: Icon + 3-Line Content */}
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
                           {(() => {
                             const isWithdrawal = tx.category === 'Retiro de Ahorro' || (tx.notes && tx.notes.includes('[RETIRO_AHORRO]'));
                             const isReplenish = tx.category === 'Reposición de Ahorro' || (tx.notes && tx.notes.includes('[REPOSICION_AHORRO]'));
@@ -286,99 +295,125 @@ export const TransactionHistory: React.FC<Props> = ({
 
                             if (isWithdrawal) {
                               return (
-                                <div className="w-10 h-10 shrink-0 rounded-2xl flex items-center justify-center border bg-amber-500/20 border-amber-500/40 text-amber-300 shadow-sm">
-                                  <ShieldWarning size={20} weight="fill" />
+                                <div className="w-11 h-11 shrink-0 rounded-2xl flex items-center justify-center border bg-amber-500/20 border-amber-500/40 text-amber-300 shadow-sm">
+                                  <ShieldWarning size={22} weight="fill" />
                                 </div>
                               );
                             }
                             if (isReplenish) {
                               return (
-                                <div className="w-10 h-10 shrink-0 rounded-2xl flex items-center justify-center border bg-cyan-500/20 border-cyan-500/40 text-cyan-300 shadow-sm">
-                                  <ShieldCheck size={20} weight="fill" />
+                                <div className="w-11 h-11 shrink-0 rounded-2xl flex items-center justify-center border bg-cyan-500/20 border-cyan-500/40 text-cyan-300 shadow-sm">
+                                  <ShieldCheck size={22} weight="fill" />
                                 </div>
                               );
                             }
                             if (isIncrease) {
                               return (
-                                <div className="w-10 h-10 shrink-0 rounded-2xl flex items-center justify-center border bg-purple-500/20 border-purple-500/40 text-purple-300 shadow-sm">
-                                  <PiggyBank size={20} weight="fill" />
+                                <div className="w-11 h-11 shrink-0 rounded-2xl flex items-center justify-center border bg-purple-500/20 border-purple-500/40 text-purple-300 shadow-sm">
+                                  <PiggyBank size={22} weight="fill" />
                                 </div>
                               );
                             }
                             return (
                               <div
-                                className={`w-10 h-10 shrink-0 rounded-2xl flex items-center justify-center border ${
+                                className={`w-11 h-11 shrink-0 rounded-2xl flex items-center justify-center border ${
                                   isIncome
                                     ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
                                     : 'bg-rose-500/10 border-rose-500/30 text-rose-400'
                                 }`}
                               >
                                 {isIncome ? (
-                                  <ArrowDownLeft size={18} weight="bold" />
+                                  <ArrowDownLeft size={20} weight="bold" />
                                 ) : (
-                                  <ArrowUpRight size={18} weight="bold" />
+                                  <ArrowUpRight size={20} weight="bold" />
                                 )}
                               </div>
                             );
                           })()}
 
-                          <div className="flex flex-col min-w-0">
-                            {/* Concept / Detail Title */}
-                            <span className="text-xs sm:text-sm font-bold text-white tracking-tight truncate leading-tight">
-                              {tx.counterparty_concept}
+                          <div className="flex flex-col min-w-0 flex-1 justify-center gap-0.5">
+                            {/* Line 1: Concept / Detail Title (Cleaned of emojis) */}
+                            <span className="text-xs sm:text-sm font-bold text-white tracking-tight truncate leading-snug">
+                              {cleanConcept(tx.counterparty_concept)}
                             </span>
 
-                            {/* Subtitle: Category & Fund Type (Single Clean Line matching Image 3) */}
-                            <div className="flex items-center gap-2 mt-1">
+                            {/* Line 2: Category Badge and Date (Matching Image 2) */}
+                            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                               <span
-                                className={`px-2 py-0.5 rounded text-[10px] font-semibold border ${catStyle.bg} ${catStyle.color} ${catStyle.border}`}
+                                className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${catStyle.bg} ${catStyle.color} ${catStyle.border}`}
                               >
                                 {tx.category}
                               </span>
-                              <span className="text-zinc-600">•</span>
-                              <span className={`inline-flex items-center gap-1 text-[10px] font-bold font-mono ${
-                                tx.fund_type === 'digital' ? 'text-blue-400' : 'text-emerald-400'
-                              }`}>
-                                {tx.fund_type === 'digital' ? (
-                                  <>
-                                    <DeviceMobile size={11} className="text-blue-400" />
-                                    <span>Digital</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Money size={11} className="text-emerald-400" />
-                                    <span>Efectivo</span>
-                                  </>
-                                )}
+                              <span className="text-[10px] font-mono text-zinc-400 px-1.5 py-0.5 rounded bg-zinc-900/90 border border-zinc-800/80">
+                                {formatDisplayDate(tx.date)}
                               </span>
+                            </div>
+
+                            {/* Line 3: Fund Indicator on its own line (Matching Image 2) */}
+                            <div className="flex items-center gap-1 text-[11px] font-bold font-mono mt-0.5">
+                              {tx.fund_type === 'digital' ? (
+                                <span className="inline-flex items-center gap-1 text-blue-400">
+                                  <DeviceMobile size={13} weight="bold" />
+                                  <span>Digital</span>
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 text-emerald-400">
+                                  <Money size={13} weight="bold" />
+                                  <span>Efectivo</span>
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
 
-                        {/* Right Side: Amount */}
-                        <div className="flex items-center gap-2 shrink-0 pl-2">
+                        {/* Right Side: Amount (Dual detail for savings operations) */}
+                        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 pl-2">
                           {(() => {
                             const isWithdrawal = tx.category === 'Retiro de Ahorro' || (tx.notes && tx.notes.includes('[RETIRO_AHORRO]'));
                             const isReplenish = tx.category === 'Reposición de Ahorro' || (tx.notes && tx.notes.includes('[REPOSICION_AHORRO]'));
                             const isIncrease = tx.category === 'Aumento de Ahorro' || (tx.notes && tx.notes.includes('[AUMENTO_AHORRO]'));
-
-                            let colorClass = isIncome ? 'text-emerald-400' : 'text-rose-400';
-                            let prefix = isIncome ? '+' : '-';
+                            const amt = Number(tx.amount);
 
                             if (isWithdrawal) {
-                              colorClass = 'text-amber-300';
-                              prefix = '+'; // Money transferred into spending fund
-                            } else if (isReplenish) {
-                              colorClass = 'text-cyan-300';
-                              prefix = '-'; // Money transferred back to reserve
-                            } else if (isIncrease) {
-                              colorClass = 'text-purple-300';
-                              prefix = '-';
+                              return (
+                                <div className="flex flex-col items-end leading-tight">
+                                  <span className="text-xs sm:text-sm font-black font-mono text-emerald-400">
+                                    +S/. {amt.toLocaleString('es-PE', { minimumFractionDigits: 2 })} <span className="text-[9px] font-semibold text-zinc-400">Libre</span>
+                                  </span>
+                                  <span className="text-[10px] sm:text-xs font-bold font-mono text-amber-400">
+                                    -S/. {amt.toLocaleString('es-PE', { minimumFractionDigits: 2 })} <span className="text-[8px] font-medium text-zinc-500">Ahorro</span>
+                                  </span>
+                                </div>
+                              );
+                            }
+                            if (isReplenish) {
+                              return (
+                                <div className="flex flex-col items-end leading-tight">
+                                  <span className="text-xs sm:text-sm font-black font-mono text-cyan-400">
+                                    +S/. {amt.toLocaleString('es-PE', { minimumFractionDigits: 2 })} <span className="text-[9px] font-semibold text-zinc-400">Ahorro</span>
+                                  </span>
+                                  <span className="text-[10px] sm:text-xs font-bold font-mono text-rose-400">
+                                    -S/. {amt.toLocaleString('es-PE', { minimumFractionDigits: 2 })} <span className="text-[8px] font-medium text-zinc-500">Libre</span>
+                                  </span>
+                                </div>
+                              );
+                            }
+                            if (isIncrease) {
+                              return (
+                                <div className="flex flex-col items-end leading-tight">
+                                  <span className="text-xs sm:text-sm font-black font-mono text-purple-400">
+                                    +S/. {amt.toLocaleString('es-PE', { minimumFractionDigits: 2 })} <span className="text-[9px] font-semibold text-zinc-400">Ahorro</span>
+                                  </span>
+                                  <span className="text-[10px] sm:text-xs font-bold font-mono text-rose-400">
+                                    -S/. {amt.toLocaleString('es-PE', { minimumFractionDigits: 2 })} <span className="text-[8px] font-medium text-zinc-500">Libre</span>
+                                  </span>
+                                </div>
+                              );
                             }
 
                             return (
-                              <span className={`text-sm sm:text-base font-black font-mono whitespace-nowrap ${colorClass}`}>
-                                {prefix}S/. {Number(tx.amount).toLocaleString('es-PE', { minimumFractionDigits: 2 })}
+                              <span className={`text-xs sm:text-base font-black font-mono whitespace-nowrap ${isIncome ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                {isIncome ? '+' : '-'}S/. {amt.toLocaleString('es-PE', { minimumFractionDigits: 2 })}
                               </span>
                             );
                           })()}
@@ -556,27 +591,41 @@ export const TransactionHistory: React.FC<Props> = ({
                   exit={{ opacity: 0, scale: 0.98 }}
                   className="py-3.5 px-2 sm:px-3 flex items-center justify-between gap-3 hover:bg-amber-500/[0.04] rounded-2xl transition-colors border border-transparent hover:border-amber-500/20"
                 >
-                  {/* Left: Icon + Detalle & Pill */}
-                  <div className="flex items-start gap-3 min-w-0">
-                    <div className="w-10 h-10 shrink-0 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mt-0.5">
-                      <ClockCountdown size={18} weight="bold" />
+                  {/* Left: Icon + 3-Line Content */}
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="w-11 h-11 shrink-0 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center">
+                      <ClockCountdown size={20} weight="bold" />
                     </div>
 
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-xs sm:text-sm font-bold text-white tracking-tight truncate leading-tight">
-                        {tx.counterparty_concept}
+                    <div className="flex flex-col min-w-0 flex-1 justify-center gap-0.5">
+                      {/* Line 1: Title (Cleaned of emojis) */}
+                      <span className="text-xs sm:text-sm font-bold text-white tracking-tight truncate leading-snug">
+                        {cleanConcept(tx.counterparty_concept)}
                       </span>
 
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                      {/* Line 2: Category Badge and Scheduled Date */}
+                      <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30">
                           {tx.category}
                         </span>
-                        <span className="text-zinc-600">•</span>
-                        <span className={`inline-flex items-center gap-1 text-[10px] font-bold font-mono ${
-                          tx.fund_type === 'digital' ? 'text-blue-400' : 'text-emerald-400'
-                        }`}>
-                          {tx.fund_type === 'digital' ? 'Digital' : 'Efectivo'}
+                        <span className="text-[10px] font-mono text-amber-400/90 px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20">
+                          {formatScheduledDate(tx.scheduled_datetime)}
                         </span>
+                      </div>
+
+                      {/* Line 3: Fund Indicator on its own line */}
+                      <div className="flex items-center gap-1 text-[11px] font-bold font-mono mt-0.5">
+                        {tx.fund_type === 'digital' ? (
+                          <span className="inline-flex items-center gap-1 text-blue-400">
+                            <DeviceMobile size={13} weight="bold" />
+                            <span>Digital</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-emerald-400">
+                            <Money size={13} weight="bold" />
+                            <span>Efectivo</span>
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

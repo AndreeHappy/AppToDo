@@ -1,4 +1,4 @@
-﻿import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import type {
   Transaction,
   EmergencyWithdrawal,
@@ -261,8 +261,61 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     let pendingPhysicalTotal = 0;
     let pendingDigitalTotal = 0;
 
+    // Calculate total withdrawn from savings and total replenished
+    let totalWithdrawnFromReserve = 0;
+    let totalReplenishedToReserve = 0;
+
     transactions.forEach((tx) => {
       const amt = Number(tx.amount) || 0;
+      const lowerConcept = (tx.counterparty_concept || '').toLowerCase();
+      const notes = tx.notes || '';
+
+      const isWithdrawal =
+        tx.category === 'Retiro de Ahorro' ||
+        notes.includes('[RETIRO_AHORRO]') ||
+        lowerConcept.includes('retiro de bolsa de ahorro');
+
+      const isReplenish =
+        tx.category === 'Reposición de Ahorro' ||
+        notes.includes('[REPOSICION_AHORRO]') ||
+        lowerConcept.includes('reposición al fondo de ahorro');
+
+      const isIncrease =
+        tx.category === 'Aumento de Ahorro' ||
+        notes.includes('[AUMENTO_AHORRO]') ||
+        lowerConcept.includes('aumento de bolsa de ahorro');
+
+      // Savings operations are internal movements between protected reserve and free spending.
+      // They do NOT alter total net income or total net expense from external sources.
+      if (isWithdrawal) {
+        totalWithdrawnFromReserve += amt;
+        // If money was withdrawn to physical cash from digital reserve:
+        if (tx.fund_type === 'physical') {
+          expDigital += amt;
+          incPhysical += amt;
+        }
+        return;
+      }
+
+      if (isReplenish) {
+        totalReplenishedToReserve += amt;
+        // If replenished into digital reserve using physical cash:
+        if (tx.fund_type === 'physical') {
+          expPhysical += amt;
+          incDigital += amt;
+        }
+        return;
+      }
+
+      if (isIncrease) {
+        // If user increased reserve using physical cash:
+        if (tx.fund_type === 'physical') {
+          expPhysical += amt;
+          incDigital += amt;
+        }
+        return;
+      }
+
       if (tx.type === 'income') {
         if (tx.fund_type === 'physical') incPhysical += amt;
         else incDigital += amt;
@@ -280,19 +333,6 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const totalBalance = totalIncome - totalExpense;
     const physicalBalance = incPhysical - expPhysical;
     const digitalBalance = incDigital - expDigital;
-
-    // Calculate total withdrawn from savings and total replenished
-    let totalWithdrawnFromReserve = 0;
-    let totalReplenishedToReserve = 0;
-
-    transactions.forEach((tx) => {
-      const amt = Number(tx.amount) || 0;
-      if (tx.category === 'Retiro de Ahorro' || (tx.notes && tx.notes.includes('[RETIRO_AHORRO]'))) {
-        totalWithdrawnFromReserve += amt;
-      } else if (tx.category === 'Reposición de Ahorro' || (tx.notes && tx.notes.includes('[REPOSICION_AHORRO]'))) {
-        totalReplenishedToReserve += amt;
-      }
-    });
 
     const reserveDeficit = Math.max(0, totalWithdrawnFromReserve - totalReplenishedToReserve);
     const currentReserve = Math.max(0, baseReserve - reserveDeficit);
@@ -547,7 +587,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       fundType,
       amount,
       category: 'Retiro de Ahorro',
-      counterpartyConcept: `⚠️ Retiro de Bolsa de Ahorro - ${reason}`,
+      counterpartyConcept: `Retiro de Bolsa de Ahorro – ${reason}`,
       notes: `[RETIRO_AHORRO] ${reason}`,
       date: todayStr,
     });
@@ -560,7 +600,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       fundType,
       amount,
       category: 'Reposición de Ahorro',
-      counterpartyConcept: '🛡️ Reposición al Fondo de Ahorro Protegido',
+      counterpartyConcept: 'Reposición al Fondo de Ahorro Protegido',
       notes: '[REPOSICION_AHORRO] Reposición al fondo protegido',
       date: todayStr,
     });
@@ -575,7 +615,7 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       fundType,
       amount,
       category: 'Aumento de Ahorro',
-      counterpartyConcept: `📈 Aumento de Bolsa de Ahorro (Nueva base: S/. ${newBase.toLocaleString('es-PE')})`,
+      counterpartyConcept: `Aumento de Bolsa de Ahorro (Nueva base: S/. ${newBase.toLocaleString('es-PE')})`,
       notes: `[AUMENTO_AHORRO] Incremento permanente de la bolsa de ahorro`,
       date: todayStr,
     });

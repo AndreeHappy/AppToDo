@@ -21,6 +21,7 @@ export const ToDoModule: React.FC = () => {
     currentAgendaId,
     selectedDate,
     unlockedDates,
+    recordedDates,
     tasks,
     setCurrentAgendaId,
     setSelectedDate,
@@ -115,14 +116,15 @@ export const ToDoModule: React.FC = () => {
     return () => clearTimeout(timer);
   }, [tasks, selectedDate, currentAgendaId, user, agendas]);
 
-  // Derived dates
+  // Derived dates (Guarantees yesterday, past week, recorded dates and task dates never vanish)
   const allDates = useMemo(() => {
     const datesSet = new Set<string>();
     datesSet.add(today);
+    recordedDates.forEach((d) => datesSet.add(d));
     tasks.forEach((t) => datesSet.add(t.date));
     datesSet.add(selectedDate);
     return Array.from(datesSet).sort((a, b) => b.localeCompare(a));
-  }, [tasks, selectedDate, today]);
+  }, [tasks, recordedDates, selectedDate, today]);
 
   const currentAgenda = useMemo(() => {
     return agendas.find((a) => a.id === currentAgendaId) || agendas[0];
