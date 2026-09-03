@@ -41,18 +41,15 @@ export const TodoProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [selectedDate, setSelectedDate] = useState(today);
   const [unlockedDates, setUnlockedDates] = useState<string[]>([]);
   const [recordedDates, setRecordedDates] = useState<string[]>(() => {
-    const saved = localStorage.getItem('app_todo_recorded_dates_v3');
-    const d = new Date();
-    const list: string[] = [];
-    // Ensure the current week (past 7 days including yesterday) are always present
-    for (let i = 0; i < 7; i++) {
-      const past = new Date(d);
-      past.setDate(past.getDate() - i);
-      const y = past.getFullYear();
-      const m = String(past.getMonth() + 1).padStart(2, '0');
-      const day = String(past.getDate()).padStart(2, '0');
-      list.push(`${y}-${m}-${day}`);
-    }
+    // Clean up old dummy dates
+    try {
+      localStorage.removeItem('app_todo_recorded_dates_v3');
+      localStorage.removeItem('app_todo_recorded_dates_v2');
+    } catch {}
+
+    const todayStr = getTodayString();
+    const list: string[] = [todayStr];
+    const saved = localStorage.getItem('app_todo_activity_dates_v1');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -63,7 +60,7 @@ export const TodoProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   useEffect(() => {
-    localStorage.setItem('app_todo_recorded_dates_v3', JSON.stringify(recordedDates));
+    localStorage.setItem('app_todo_activity_dates_v1', JSON.stringify(recordedDates));
   }, [recordedDates]);
 
   const recordDate = useCallback((date: string) => {

@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { FinanceProvider } from './context/FinanceContext';
 import { TodoProvider } from './context/TodoContext';
@@ -18,12 +18,38 @@ import {
   User,
   CircleNotch,
   ShieldCheck,
+  CaretDown,
+  Gear,
+  SignOut,
 } from '@phosphor-icons/react';
 
 const MODULE_SESSION_KEY = 'app_portal_active_module';
 
 const MainPortal: React.FC = () => {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, logout } = useAuth();
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
+
+  const displayName = profile?.nickname || profile?.first_name || (profile?.full_name ? profile.full_name.trim().split(' ')[0] : 'Usuario');
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsUserMenuOpen(false);
+    };
+    if (isUserMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isUserMenuOpen]);
 
   const [activeModule, setActiveModuleState] = useState<ActiveModule>(() => {
     const saved = sessionStorage.getItem(MODULE_SESSION_KEY);
@@ -100,16 +126,81 @@ const MainPortal: React.FC = () => {
           )}
         </div>
 
-        {/* Right Actions: User profile pill (No gear icon) */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Right Actions: User profile pill with dropdown menu */}
+        <div className="relative shrink-0" ref={userMenuRef}>
           <button
-            onClick={() => setActiveModule('profile')}
-            title="Ver mi perfil"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition-colors"
+            onClick={() => setIsUserMenuOpen((prev) => !prev)}
+            title="Opciones de cuenta"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-300 hover:text-white transition-all shadow-xs active:scale-95"
           >
-            <User size={14} className="text-indigo-400" />
-            <span className="font-mono font-bold">{profile?.full_name || 'Happy'}</span>
+            <div className="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-[10px]">
+              {displayName.charAt(0).toUpperCase()}
+            </div>
+            <span className="font-mono font-bold truncate max-w-[110px] sm:max-w-[160px]">
+              {displayName}
+            </span>
+            <CaretDown size={11} className={`text-zinc-500 transition-transform duration-200 ${isUserMenuOpen ? 'rotate-180' : ''}`} />
           </button>
+
+          {/* User Dropdown Menu */}
+          <AnimatePresence>
+            {isUserMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                transition={{ duration: 0.15, ease: 'easeOut' }}
+                className="absolute right-0 mt-2 w-56 rounded-2xl bg-[#0a0b12] border border-white/[0.12] shadow-2xl p-1.5 z-50 flex flex-col gap-1 backdrop-blur-xl"
+              >
+                {/* Header info */}
+                <div className="px-3 py-2 border-b border-white/[0.08] flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-600/25 border border-indigo-500/40 text-indigo-300 flex items-center justify-center font-bold text-xs">
+                    {displayName.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-xs font-bold text-white truncate">{displayName}</span>
+                    <span className="text-[10px] text-zinc-400 truncate">{user?.email}</span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <button
+                  onClick={() => {
+                    setActiveModule('profile');
+                    setIsUserMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-zinc-300 hover:text-white hover:bg-zinc-800/60 transition-colors w-full text-left"
+                >
+                  <User size={15} className="text-indigo-400" />
+                  <span>Mi Perfil</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setActiveModule('settings');
+                    setIsUserMenuOpen(false);
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-zinc-300 hover:text-white hover:bg-zinc-800/60 transition-colors w-full text-left"
+                >
+                  <Gear size={15} className="text-zinc-400" />
+                  <span>Ajustes</span>
+                </button>
+
+                <div className="h-px bg-white/[0.06] my-0.5" />
+
+                <button
+                  onClick={() => {
+                    setIsUserMenuOpen(false);
+                    logout();
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-rose-400 hover:bg-rose-500/10 transition-colors w-full text-left font-semibold"
+                >
+                  <SignOut size={15} />
+                  <span>Cerrar Sesión</span>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </nav>
 

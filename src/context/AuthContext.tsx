@@ -20,9 +20,13 @@ interface AuthContextType {
   updateProtectedReserve: (newBase: number) => Promise<void>;
   updateProfile: (data: {
     fullName?: string;
+    firstName?: string;
+    lastName?: string;
+    nickname?: string;
     phoneNumber?: string;
     age?: number;
     country?: string;
+    city?: string;
     occupation?: string;
     avatarUrl?: string;
     protectedReserveBase?: number;
@@ -382,9 +386,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = async (data: {
     fullName?: string;
+    firstName?: string;
+    lastName?: string;
+    nickname?: string;
     phoneNumber?: string;
     age?: number;
     country?: string;
+    city?: string;
     occupation?: string;
     avatarUrl?: string;
     protectedReserveBase?: number;
@@ -394,9 +402,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const updated: UserProfile = {
       ...profile,
       full_name: data.fullName !== undefined ? data.fullName : profile.full_name,
+      first_name: data.firstName !== undefined ? data.firstName : profile.first_name,
+      last_name: data.lastName !== undefined ? data.lastName : profile.last_name,
+      nickname: data.nickname !== undefined ? data.nickname : profile.nickname,
       phone_number: data.phoneNumber !== undefined ? data.phoneNumber : profile.phone_number,
       age: data.age !== undefined ? data.age : profile.age,
       country: data.country !== undefined ? data.country : profile.country,
+      city: data.city !== undefined ? data.city : profile.city,
       occupation: data.occupation !== undefined ? data.occupation : profile.occupation,
       avatar_url: data.avatarUrl !== undefined ? data.avatarUrl : profile.avatar_url,
       protected_reserve_base: data.protectedReserveBase !== undefined ? data.protectedReserveBase : profile.protected_reserve_base,
@@ -409,9 +421,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .from('profiles')
           .update({
             full_name: updated.full_name,
+            first_name: updated.first_name,
+            last_name: updated.last_name,
+            nickname: updated.nickname,
             phone_number: updated.phone_number,
             age: updated.age,
             country: updated.country,
+            city: updated.city,
             occupation: updated.occupation,
             avatar_url: updated.avatar_url,
             protected_reserve_base: updated.protected_reserve_base,

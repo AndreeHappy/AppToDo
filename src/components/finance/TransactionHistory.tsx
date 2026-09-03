@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   MagnifyingGlass,
@@ -30,7 +30,7 @@ const cleanConcept = (text: string): string => {
   if (!text) return '';
   return text
     .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE0F}]/gu, '')
-    .replace(/^[\s\-–—]+/, '')
+    .replace(/^[\s\-â€“â€”]+/, '')
     .trim();
 };
 
@@ -96,7 +96,7 @@ export const TransactionHistory: React.FC<Props> = ({
 
   // Format scheduled datetime display (e.g. 28/08/2026 13:00)
   const formatScheduledDate = (dtStr?: string) => {
-    if (!dtStr) return 'Próximamente';
+    if (!dtStr) return 'PrÃ³ximamente';
     try {
       const d = new Date(dtStr);
       const day = String(d.getDate()).padStart(2, '0');
@@ -129,13 +129,13 @@ export const TransactionHistory: React.FC<Props> = ({
       return;
     }
 
-    const headers = ['Fecha / Programación', 'Tipo', 'Categoría', 'Detalle/Concepto', 'Tipo de Fondo', 'Monto (S/.)', 'Notas'];
+    const headers = ['Fecha / ProgramaciÃ³n', 'Tipo', 'CategorÃ­a', 'Detalle/Concepto', 'Tipo de Fondo', 'Monto (S/.)', 'Notas'];
     const rows = listToExport.map((tx) => [
       `"${tx.scheduled_datetime || tx.date}"`,
       `"${tx.type === 'income' ? 'Ingreso' : tx.type === 'pending_expense' ? 'Gasto Pendiente' : 'Egreso'}"`,
       `"${tx.category}"`,
       `"${tx.counterparty_concept.replace(/"/g, '""')}"`,
-      `"${tx.fund_type === 'digital' ? 'Digital / Bancos' : 'Efectivo / Físico'}"`,
+      `"${tx.fund_type === 'digital' ? 'Digital / Bancos' : 'Efectivo / FÃ­sico'}"`,
       `"${tx.amount.toFixed(2)}"`,
       `"${(tx.notes || '').replace(/"/g, '""')}"`,
     ]);
@@ -234,7 +234,7 @@ export const TransactionHistory: React.FC<Props> = ({
               >
                 <option value="all">Todos los Fondos</option>
                 <option value="digital">Digital / Bancos</option>
-                <option value="physical">Efectivo / Físico</option>
+                <option value="physical">Efectivo / FÃ­sico</option>
               </select>
             </>
           )}
@@ -290,7 +290,7 @@ export const TransactionHistory: React.FC<Props> = ({
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           {(() => {
                             const isWithdrawal = tx.category === 'Retiro de Ahorro' || (tx.notes && tx.notes.includes('[RETIRO_AHORRO]'));
-                            const isReplenish = tx.category === 'Reposición de Ahorro' || (tx.notes && tx.notes.includes('[REPOSICION_AHORRO]'));
+                            const isReplenish = tx.category === 'ReposiciÃ³n de Ahorro' || (tx.notes && tx.notes.includes('[REPOSICION_AHORRO]'));
                             const isIncrease = tx.category === 'Aumento de Ahorro' || (tx.notes && tx.notes.includes('[AUMENTO_AHORRO]'));
 
                             if (isWithdrawal) {
@@ -331,26 +331,31 @@ export const TransactionHistory: React.FC<Props> = ({
                             );
                           })()}
 
-                          <div className="flex flex-col min-w-0 flex-1 justify-center gap-0.5">
-                            {/* Line 1: Concept / Detail Title (Cleaned of emojis) */}
+                          <div className="flex flex-col min-w-0 flex-1 justify-center gap-1">
+                            {/* Line 1: Concept / Detail Title */}
                             <span className="text-xs sm:text-sm font-bold text-white tracking-tight truncate leading-snug">
                               {cleanConcept(tx.counterparty_concept)}
                             </span>
 
-                            {/* Line 2: Category Badge and Date (Matching Image 2) */}
-                            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                            {/* Line 2: Category Badge */}
+                            <div className="flex items-center">
                               <span
                                 className={`px-2 py-0.5 rounded-md text-[10px] font-semibold border ${catStyle.bg} ${catStyle.color} ${catStyle.border}`}
                               >
                                 {tx.category}
                               </span>
-                              <span className="text-[10px] font-mono text-zinc-400 px-1.5 py-0.5 rounded bg-zinc-900/90 border border-zinc-800/80">
+                            </div>
+
+                            {/* Line 3: Date (Placed directly above Digital/Efectivo) */}
+                            <div className="flex items-center gap-1 text-[10px] font-mono text-zinc-400">
+                              <CalendarBlank size={12} className="text-zinc-500" />
+                              <span className="px-1.5 py-0.5 rounded bg-zinc-900/90 border border-zinc-800/80">
                                 {formatDisplayDate(tx.date)}
                               </span>
                             </div>
 
-                            {/* Line 3: Fund Indicator on its own line (Matching Image 2) */}
-                            <div className="flex items-center gap-1 text-[11px] font-bold font-mono mt-0.5">
+                            {/* Line 4: Fund Indicator (Digital or Efectivo) */}
+                            <div className="flex items-center gap-1 text-[11px] font-bold font-mono">
                               {tx.fund_type === 'digital' ? (
                                 <span className="inline-flex items-center gap-1 text-blue-400">
                                   <DeviceMobile size={13} weight="bold" />
@@ -370,7 +375,7 @@ export const TransactionHistory: React.FC<Props> = ({
                         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 pl-2">
                           {(() => {
                             const isWithdrawal = tx.category === 'Retiro de Ahorro' || (tx.notes && tx.notes.includes('[RETIRO_AHORRO]'));
-                            const isReplenish = tx.category === 'Reposición de Ahorro' || (tx.notes && tx.notes.includes('[REPOSICION_AHORRO]'));
+                            const isReplenish = tx.category === 'ReposiciÃ³n de Ahorro' || (tx.notes && tx.notes.includes('[REPOSICION_AHORRO]'));
                             const isIncrease = tx.category === 'Aumento de Ahorro' || (tx.notes && tx.notes.includes('[AUMENTO_AHORRO]'));
                             const amt = Number(tx.amount);
 
@@ -437,7 +442,7 @@ export const TransactionHistory: React.FC<Props> = ({
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-2 rounded-xl bg-zinc-900/80 border border-zinc-800/80">
                               <div className="flex flex-col">
                                 <span className="text-[10px] text-zinc-500 uppercase font-bold flex items-center gap-1">
-                                  <Hash size={11} /> N° Registro
+                                  <Hash size={11} /> NÂ° Registro
                                 </span>
                                 <span className="text-white font-bold mt-0.5">#{txChronologicalNumberMap.get(tx.id) || (transactions.length - idx)}</span>
                               </div>
@@ -459,7 +464,7 @@ export const TransactionHistory: React.FC<Props> = ({
                               <div className="flex flex-col">
                                 <span className="text-[10px] text-zinc-500 uppercase font-bold">Fondo</span>
                                 <span className={`font-bold mt-0.5 ${tx.fund_type === 'digital' ? 'text-blue-400' : 'text-emerald-400'}`}>
-                                  {tx.fund_type === 'digital' ? 'Digital / Bancos' : 'Efectivo / Físico'}
+                                  {tx.fund_type === 'digital' ? 'Digital / Bancos' : 'Efectivo / FÃ­sico'}
                                 </span>
                               </div>
                             </div>
@@ -579,7 +584,7 @@ export const TransactionHistory: React.FC<Props> = ({
               <div className="p-8 text-center text-xs text-zinc-500 border border-dashed border-zinc-800/80 rounded-2xl my-2 flex flex-col items-center gap-1.5">
                 <ClockCountdown size={26} className="text-zinc-600 mb-1" />
                 <p className="font-semibold text-zinc-400">No tienes gastos pendientes programados</p>
-                <span>Cuando programes un gasto futuro, se descontará automáticamente cuando llegue su fecha y hora.</span>
+                <span>Cuando programes un gasto futuro, se descontarÃ¡ automÃ¡ticamente cuando llegue su fecha y hora.</span>
               </div>
             ) : (
               pendingExpenses.map((tx) => (

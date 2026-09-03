@@ -13,9 +13,9 @@
 /* THEME VARIABLES */
 html.dark {
   color-scheme: dark;
-  --bg-main: #090a0f;
-  --bg-surface: #11131a;
-  --bg-input: #0e1017;
+  --bg-main: #030407; /* ~20 niveles más oscuro para contraste profundo */
+  --bg-surface: #0a0b12;
+  --bg-input: #06070b;
   --text-main: #f4f4f5;
   --text-muted: #a1a1aa;
   --border-main: rgba(255, 255, 255, 0.08);
@@ -23,9 +23,9 @@ html.dark {
 
 html.light {
   color-scheme: light;
-  --bg-main: #f4f6fb;
-  --bg-surface: #ffffff;
-  --bg-input: #f8fafc;
+  --bg-main: #e4e7eb; /* Gris Humo refinado y moderno */
+  --bg-surface: #eff2f5;
+  --bg-input: #e9edf2;
   --text-main: #0f172a;
   --text-muted: #475569;
   --border-main: rgba(0, 0, 0, 0.09);
@@ -38,13 +38,17 @@ body {
 }
 
 /* LIGHT MODE SURFACE & CONTAINER OVERRIDES */
+html.light .bg-\[\#030407\],
+html.light .bg-\[\#07080d\],
 html.light .bg-\[\#090a0f\],
 html.light .bg-\[\#0b0c10\],
 html.light .bg-\[\#0d0e14\],
 html.light .bg-\[\#0f1117\] {
-  background-color: #f4f6fb !important;
+  background-color: #e4e7eb !important; /* Gris Humo */
 }
 
+html.light .bg-\[\#0a0b12\],
+html.light .bg-\[\#0b0c12\],
 html.light .bg-\[\#11131a\],
 html.light .bg-\[\#12141e\],
 html.light .bg-\[\#13151f\],
@@ -53,8 +57,8 @@ html.light .bg-\[\#141520\],
 html.light .bg-\[\#141620\],
 html.light .bg-\[\#14181a\],
 html.light .bg-\[\#181a24\] {
-  background-color: #ffffff !important;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  background-color: #eff2f5 !important; /* Tarjetas en Gris Humo luminoso */
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.06);
 }
 
 html.light .bg-zinc-900,

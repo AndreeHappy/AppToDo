@@ -15,6 +15,7 @@ import {
 import type { TransactionType, FundType } from '../../types';
 import { getTodayString } from '../../utils/date';
 import { CurrencyInput } from '../ui/CurrencyInput';
+import { CustomSelect } from '../ui/CustomSelect';
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '../../constants/categories';
 
 interface Props {
@@ -400,24 +401,12 @@ export const TransactionFormModal: React.FC<Props> = ({
                   <Tag size={13} />
                   <span>Categoría</span>
                 </label>
-                <div className="relative">
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 focus:border-indigo-500 text-xs sm:text-sm text-white outline-none cursor-pointer [color-scheme:dark] appearance-none"
-                  >
-                    {currentCategories.map((cat) => (
-                      <option key={cat} value={cat} className="bg-[#12141e] text-zinc-200 py-2">
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-zinc-400">
-                    <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
-                      <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                    </svg>
-                  </div>
-                </div>
+                <CustomSelect
+                  options={currentCategories}
+                  value={category}
+                  onChange={setCategory}
+                  icon={<Tag size={15} />}
+                />
               </div>
 
               {/* Notes (Optional) */}

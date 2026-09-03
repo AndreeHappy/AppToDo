@@ -12,7 +12,7 @@ import { FooterActions } from './FooterActions';
 import { NewAgendaModal } from './NewAgendaModal';
 import { NewDateModal } from './NewDateModal';
 import { MarkdownEditorModal } from './MarkdownEditorModal';
-import { CloudCheck, CalendarBlank, X, CaretDown, Plus } from '@phosphor-icons/react';
+import { CloudCheck, CalendarBlank, CaretDown, Plus } from '@phosphor-icons/react';
 
 export const ToDoModule: React.FC = () => {
   const { user } = useAuth();
@@ -182,7 +182,6 @@ export const ToDoModule: React.FC = () => {
             selectedDate={selectedDate}
             unlockedDates={unlockedDates}
             onSelectDate={setSelectedDate}
-            onAddCustomDate={() => setIsDateModalOpen(true)}
           />
         </div>
 
@@ -203,17 +202,8 @@ export const ToDoModule: React.FC = () => {
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: -280, opacity: 0 }}
                 transition={{ type: 'spring', stiffness: 340, damping: 30 }}
-                className="relative z-50 w-72 bg-[#0f1117] h-full shadow-2xl flex flex-col border-r border-white/[0.08]"
+                className="relative z-50 w-72 bg-[#07080d] h-full shadow-2xl flex flex-col border-r border-white/[0.08]"
               >
-                <div className="p-3.5 border-b border-white/[0.08] flex items-center justify-between">
-                  <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Historial de Fechas</span>
-                  <button
-                    onClick={() => setIsMobileSidebarOpen(false)}
-                    className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
                 <div className="flex-1 overflow-y-auto">
                   <SidebarDates
                     dates={allDates}
@@ -223,10 +213,7 @@ export const ToDoModule: React.FC = () => {
                       setSelectedDate(d);
                       setIsMobileSidebarOpen(false);
                     }}
-                    onAddCustomDate={() => {
-                      setIsMobileSidebarOpen(false);
-                      setIsDateModalOpen(true);
-                    }}
+                    onClose={() => setIsMobileSidebarOpen(false)}
                   />
                 </div>
               </motion.div>

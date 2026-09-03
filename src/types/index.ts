@@ -7,9 +7,13 @@ export interface UserProfile {
   id: string;
   email: string;
   full_name: string;
+  first_name?: string;
+  last_name?: string;
+  nickname?: string;
   phone_number?: string;
   age?: number;
   country?: string;
+  city?: string;
   occupation?: string;
   avatar_url?: string;
   protected_reserve_base: number; // default S/. 950.00

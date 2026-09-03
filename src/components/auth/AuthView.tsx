@@ -241,9 +241,9 @@ export const AuthView: React.FC = () => {
 
         </div>
 
-        {/* Tab Switcher */}
+        {/* Tab Switcher con colores vivos distintivos */}
         {!isPasswordRecovery && mode !== 'forgot_password' && (
-          <div className="grid grid-cols-2 p-1 rounded-xl bg-zinc-900/80 border border-zinc-800/80 relative">
+          <div className="grid grid-cols-2 p-1 rounded-xl bg-zinc-900/90 border border-zinc-800 relative gap-1">
             <button
               type="button"
               onClick={() => {
@@ -251,19 +251,19 @@ export const AuthView: React.FC = () => {
                 setErrorDetails(null);
                 setSuccessMsg(null);
               }}
-              className={`relative py-2 text-xs font-bold transition-colors z-10 ${
+              className={`relative py-2 text-xs font-black transition-all z-10 rounded-lg ${
                 mode === 'login' ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
               {mode === 'login' && (
                 <motion.div
                   layoutId="auth-tab-pill"
-                  className="absolute inset-0 bg-[#1e212d] rounded-lg shadow-sm border border-white/[0.08]"
-                  transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+                  className="absolute inset-0 bg-indigo-600 rounded-lg shadow-md shadow-indigo-600/40 border border-indigo-400/40"
+                  transition={{ type: 'spring', stiffness: 450, damping: 32 }}
                 />
               )}
               <span className="relative z-10 flex items-center justify-center gap-1.5">
-                <SignIn size={14} weight="bold" />
+                <SignIn size={15} weight="bold" />
                 <span>Iniciar Sesión</span>
               </span>
             </button>
@@ -275,19 +275,19 @@ export const AuthView: React.FC = () => {
                 setErrorDetails(null);
                 setSuccessMsg(null);
               }}
-              className={`relative py-2 text-xs font-bold transition-colors z-10 ${
+              className={`relative py-2 text-xs font-black transition-all z-10 rounded-lg ${
                 mode === 'register' ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'
               }`}
             >
               {mode === 'register' && (
                 <motion.div
                   layoutId="auth-tab-pill"
-                  className="absolute inset-0 bg-[#1e212d] rounded-lg shadow-sm border border-white/[0.08]"
-                  transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+                  className="absolute inset-0 bg-emerald-600 rounded-lg shadow-md shadow-emerald-600/40 border border-emerald-400/40"
+                  transition={{ type: 'spring', stiffness: 450, damping: 32 }}
                 />
               )}
               <span className="relative z-10 flex items-center justify-center gap-1.5">
-                <UserPlus size={14} weight="bold" />
+                <UserPlus size={15} weight="bold" />
                 <span>Registrarse</span>
               </span>
             </button>
